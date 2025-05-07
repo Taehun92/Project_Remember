@@ -1,24 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { Route, Routes, useLocation } from 'react-router-dom';
+import { Box, CssBaseline } from '@mui/material';
+
+import Menu from './components/Menu';
+import Login from './components/common/Login';
 
 function App() {
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/join' || location.pathname === '/';
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Box sx={{ display: 'flex' }}>
+      <CssBaseline />
+      {!isAuthPage && <Menu />} {/* 로그인과 회원가입 페이지가 아닐 때만 Menu 렌더링 */}
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          {/* <Route path="/feed" element={<Feed />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/mypage" element={<MyPage />} /> */}
+        </Routes>
+      </Box>
+    </Box>
   );
 }
 
