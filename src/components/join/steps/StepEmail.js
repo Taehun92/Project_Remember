@@ -37,7 +37,7 @@ function StepEmail({ onNext, onBack, formData, setFormData }) {
   };
 
   const handleNext = () => {
-    if (!email) {
+    if (!email || !verified) {
       // 인증도, 입력도 안했을 경우 경고
       setConfirmSkipOpen(true);
     } else {
@@ -70,19 +70,27 @@ function StepEmail({ onNext, onBack, formData, setFormData }) {
           type="email"
           value={email}
           onChange={(e) => {
-            setEmail(e.target.value);
-            setError('');
+            const value = e.target.value;
+            setEmail(value);
+
+            // 이메일 형식 검사
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            setError(emailRegex.test(value) ? '' : '올바른 이메일 형식이 아닙니다.');
+
+            // 인증 상태 초기화
             setVerified(false);
             setSentCode('');
             setVerifyCode('');
           }}
           fullWidth
+          error={Boolean(error)}
+          helperText={error}
         />
 
         <Button
           variant="outlined"
           onClick={handleSendCode}
-          disabled={!email}
+          disabled={!email || Boolean(error)}
         >
           인증 코드 전송
         </Button>

@@ -36,7 +36,7 @@ function StepPhone({ onNext, onBack, formData, setFormData }) {
   };
 
   const handleNext = () => {
-    if (!phone) {
+    if (!phone || !verified) {
       setConfirmSkipOpen(true);
     } else {
       setFormData((prev) => ({
@@ -65,22 +65,38 @@ function StepPhone({ onNext, onBack, formData, setFormData }) {
       <Stack spacing={2}>
         <TextField
           label="휴대폰 번호"
-          placeholder="01012345678"
+          placeholder="010-0000-0000"
           value={phone}
           onChange={(e) => {
-            setPhone(e.target.value);
-            setError('');
+            let value = e.target.value.replace(/[^\d]/g, ''); // 숫자만 추출
+
+            // 자동 하이픈 추가
+            if (value.length > 3 && value.length <= 7) {
+              value = value.slice(0, 3) + '-' + value.slice(3);
+            } else {
+              value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+            }
+
+            setPhone(value);
+
+            // 전화번호 유효성 검사
+            const phoneRegex = /^01[0|1|6|7|8|9]-\d{3,4}-\d{4}$/;
+            setError(phoneRegex.test(value) ? '' : '010-0000-0000 형식으로 입력해주세요.');
+
+            // 인증 초기화
             setVerified(false);
             setSentCode('');
             setVerifyCode('');
           }}
           fullWidth
+          error={Boolean(error)}
+          helperText={error}
         />
 
         <Button
           variant="outlined"
           onClick={handleSendCode}
-          disabled={!phone}
+          disabled={!phone || Boolean(error)}
         >
           인증 코드 전송
         </Button>

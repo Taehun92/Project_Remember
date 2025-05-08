@@ -60,9 +60,9 @@ function StepExtra({ onNext, onBack, formData, setFormData }) {
         <TextField
           label="생년월일"
           type="date"
-          value={birth}
-          onChange={(e) => setBirth(e.target.value)}
           fullWidth
+          size="small"
+          InputLabelProps={{ shrink: true }} // ✅ label을 위로 올림
         />
 
         <TextField

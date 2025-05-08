@@ -9,8 +9,8 @@ import {
   LogoBar,
   LinkRow,
   StyledLink
-} from './LoginStyled';
-import JoinDialog from '../join/JoinDialog';
+} from '../components/common/LoginStyled';
+import JoinDialog from '../components/join/JoinDialog';
 
 function Login() {
   const [loginId, setLoginId] = useState('');
@@ -75,7 +75,15 @@ function Login() {
               <LogoBar />
             </LogoBox>
 
-            <Box component="form" noValidate autoComplete="off">
+            <Box
+              component="form"
+              noValidate
+              autoComplete="off"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleLogin();
+              }}
+            >
               <Stack spacing={3}>
                 <TextField
                   id="input-with-icon-textfield"
@@ -110,10 +118,10 @@ function Login() {
                   />
                 </FormControl>
                 <Button
+                  type="submit"
                   variant="contained"
                   fullWidth
                   size="large"
-                  onClick={handleLogin}
                 >
                   로그인
                 </Button>
@@ -145,8 +153,8 @@ function Login() {
           <Button onClick={handleDialogClose}>확인</Button>
         </DialogActions>
       </Dialog>
-    </Container>
-    
+    </Container >
+
   );
 }
 

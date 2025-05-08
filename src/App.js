@@ -2,8 +2,10 @@ import React from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { Box, CssBaseline } from '@mui/material';
 
-import Menu from './components/Menu';
-import Login from './components/common/Login';
+import Menu from './pages/Menu';
+import Login from './pages/Login';
+import MyPage from './pages/MyPage';
+import DeceasedPage from './pages/DeceasedPage';
 
 function App() {
   const location = useLocation();
@@ -16,10 +18,14 @@ function App() {
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/deceased/:duserId" element={<DeceasedPage />} />
+          
           {/* <Route path="/feed" element={<Feed />} />
-            <Route path="/login" element={<Login />} />
+            
             <Route path="/register" element={<Register />} />
-            <Route path="/mypage" element={<MyPage />} /> */}
+             */}
         </Routes>
       </Box>
     </Box>
