@@ -1,69 +1,113 @@
+// src/pages/MyPage.jsx
 import React, { useEffect, useState } from 'react';
-import { Container, Typography, Box, Avatar, Grid, Paper, Button } from '@mui/material';
+import {
+    Container,
+    Typography,
+    Box,
+    Avatar,
+    Grid,
+    Paper,
+    Button,
+    CircularProgress
+} from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import EditProfileModal from '../components/profile/EditProfileModal';
+import FollowerList from '../components/follow/FollowerList';
 import { formatYearOnly } from '../utils/formatData';
+import { useRecoilState } from 'recoil';
+import { userProfileState } from '../state/userProfile';
+import { cardSection } from '../components/common/styles';
 
-
-function MyPage() {
-    let [info, setInfo] = useState({ userName: "", email: "", intro: "", profileImg: "" });
-    let [open, setOpen] = useState(false);
-    const [editOpen, setEditOpen] = useState(false);
-    let [deceasedList, setDeceasedList] = useState([]);
+export default function MyPage() {
+    const [info, setInfo] = useState(null);
+    const [deceasedList, setDeceasedList] = useState([]);
     const [timelineList, setTimelineList] = useState([]);
+    const [followedDeceased, setFollowedDeceased] = useState([]);
+    const [editOpen, setEditOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    const imgUrl = info.IMG_PATH && info.IMG_NAME
-        ? `http://localhost:3005${info.IMG_PATH}${info.IMG_NAME}`
-        : '/default-profile.png';
+    const { userId: loginUserId } = jwtDecode(localStorage.getItem('token'));
+    const { userId: routeParam } = useParams();
+    const routeUserId = routeParam || loginUserId;
 
-    let token = localStorage.getItem('token');
+    const [profile, setProfile] = useRecoilState(userProfileState);
     const navigate = useNavigate();
 
-    const fnFetchData = async () => {
-        if (!token) {
-            navigate('/login');
-            return;
-        }
-
-        const decoded = jwtDecode(token);
-        const userId = decoded.userId;
-
-        try {
-            // 사용자 정보 + 프로필 이미지
-            const userRes = await fetch(`http://localhost:3005/user/info/${userId}`);
-            const userData = await userRes.json();
-            setInfo(userData.info);
-            console.log(userData.info);
-
-            // 고인 정보 + 이미지
-            const deceasedRes = await fetch(`http://localhost:3005/user/deceased/${userId}`);
-            const deceasedData = await deceasedRes.json();
-            console.log("🧾 deceasedData:", deceasedData);
-            setDeceasedList(deceasedData.list); // 배열 형태로 온다고 가정
-            console.log(deceasedList);
-
-            // 타임 라인
-            const fetchTimeline = await fetch(`http://localhost:3005/user/timeline/${userId}`);
-            const data = await fetchTimeline.json();
-            setTimelineList(data.list); // 리스트만 받는다고 가정
-
-        } catch (err) {
-            console.error("데이터 조회 실패:", err);
-        }
-    };
-
-    const handleEditClose = () => {
-        setEditOpen(false);
-        fnFetchData(); // 정보 재조회로 최신화
-    };
-
-    console.log('🐞 info:', info);
-    console.log('🐞 imgUrl:', imgUrl);
     useEffect(() => {
-        fnFetchData();
-    }, []);
-    
+        let cancelled = false;
+        setLoading(true);
+
+        (async () => {
+            try {
+                // 1) 유저 정보
+                const resInfo = await fetch(`http://localhost:3005/user/info/${routeUserId}`);
+                console.log('/user/info ▶', resInfo.ok, await resInfo.clone().json());
+                setInfo((await resInfo.json()).info);
+
+                // 2) 관리하는 고인
+                const resDec = await fetch(`http://localhost:3005/user/deceased/${routeUserId}`);
+                console.log('/user/deceased ▶', resDec.ok, await resDec.clone().json());
+                setDeceasedList((await resDec.json()).list);
+
+                // 3) 내가 팔로우한 고인
+                const resFollow = await fetch(`http://localhost:3005/follow/${routeUserId}/following`);
+                console.log('/follow/.../following ▶', resFollow.ok, await resFollow.clone().json());
+                const { following = [] } = await resFollow.json();
+                const mapped = following.map(d => ({
+                    USERID: d.DUSERID,
+                    USERNAME: d.DUSERNAME,
+                    TAGNAME: d.TAGNAME || '',
+                    IMG_PATH: d.IMG_PATH,
+                    IMG_NAME: d.IMG_NAME
+                }));
+
+                setFollowedDeceased(mapped);
+
+                // 4) 타임라인
+                const resTime = await fetch(`http://localhost:3005/user/timeline/${routeUserId}`);
+                console.log('/user/timeline ▶', resTime.ok, await resTime.clone().json());
+                setTimelineList((await resTime.json()).list || []);
+
+            } catch (err) {
+                console.error('데이터 로드 실패:', err);
+            } finally {
+                setLoading(false);  // 이 줄이 꼭 실행되어야 스피너가 멈춥니다.
+            }
+        })();
+
+        return () => { cancelled = true; };
+    }, [routeUserId, loginUserId]);
+
+    // 로그인 사용자 자신의 페이지일 때만 recoil 업데이트
+    useEffect(() => {
+        if (
+            info !== null &&
+            routeUserId === loginUserId &&
+            info.IMG_PATH != null &&
+            info.IMG_NAME != null
+        ) {
+            setProfile({
+                IMG_PATH: info.IMG_PATH,
+                IMG_NAME: info.IMG_NAME
+            });
+        }
+    }, [info, routeUserId, loginUserId, setProfile]);
+
+    // 로딩 또는 info가 빈 상태라면 스피너
+    if (loading || info === null) {
+        return (
+            <Box display="flex" justifyContent="center" mt={10}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    // 프로필 이미지 URL
+    const imgUrl =
+        info.IMG_PATH && info.IMG_NAME
+            ? `http://localhost:3005${info.IMG_PATH}${info.IMG_NAME}`
+            : '/default-profile.png';
 
     return (
         <Container maxWidth="md">
@@ -73,89 +117,101 @@ function MyPage() {
                 alignItems="center"
                 justifyContent="flex-start"
                 minHeight="100vh"
-                sx={{ padding: '20px' }}
+                sx={{ p: 2 }}
             >
-                <Paper elevation={3} sx={{ padding: '20px', borderRadius: '15px', width: '100%' }}>
-                    {/* 프로필 정보 상단 배치 */}
-                    <Box display="flex" flexDirection="column" alignItems="center" sx={{ marginBottom: 3, position: 'relative' }}>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            sx={{ position: 'absolute', top: 0, right: 0 }}
-                            onClick={() => setEditOpen(true)}
-                        >
-                            정보 수정
-                        </Button>
-                        <Avatar
-                            alt="프로필 이미지"
-                            src={imgUrl}
-                            sx={{ width: 100, height: 100, marginBottom: 2 }}
-                            onClick={() => { setOpen(!open) }}
-                        />
+                <Paper sx={{ width: '100%', p: 3, borderRadius: 2 }} elevation={3}>
+                    {/* 프로필 상단 */}
+                    <Box sx={{ textAlign: 'center', position: 'relative', mb: 3 }}>
+                        {routeUserId === loginUserId && (
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                sx={{ position: 'absolute', top: 0, right: 0 }}
+                                onClick={() => setEditOpen(true)}
+                            >
+                                정보 수정
+                            </Button>
+                        )}
+                        <Avatar src={imgUrl} sx={{ width: 100, height: 100, mx: 'auto', mb: 1 }} />
                         <Typography variant="h5">{info.USERNAME}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            {info.TAGNAME}
-                        </Typography>
+                        <Typography color="text.secondary">{info.TAGNAME}</Typography>
                     </Box>
-                    {/* 고인 목록 */}
-                    <Typography variant="h6" gutterBottom>내가 관리하는 고인</Typography>
+
+                    {/* 관리하는 고인 */}
+                    <Typography variant="h6" gutterBottom>
+                        내가 관리하는 고인
+                    </Typography>
                     <Grid container spacing={2}>
-                        {deceasedList.map((duser) => (
-                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={duser.DUSERID}>
+                        {deceasedList.map(d => (
+                            <Grid sx={{ xs: 12, sm: 6, md: 4 }} key={d.DUSERID}>
                                 <Paper
+                                    onClick={() => navigate(`/deceased/${d.DUSERID}`)}
                                     sx={{
-                                        p: 2,
                                         textAlign: 'center',
+                                        p: 2,
                                         cursor: 'pointer',
-                                        transition: '0.2s',
-                                        '&:hover': { boxShadow: 6 },
+                                        '&:hover': { boxShadow: 6 }
                                     }}
-                                    onClick={() => navigate(`/deceased/${duser.DUSERID}`)}
                                 >
                                     <Avatar
-                                        src={`http://localhost:3005/${duser.img_path || 'default-deceased.png'}`}
-                                        sx={{ width: 80, height: 80, mx: 'auto' }}
+                                        src={
+                                            d.IMG_PATH && d.IMG_NAME
+                                                ? `http://localhost:3005${d.IMG_PATH}${d.IMG_NAME}`
+                                                : '/default-deceased.png'
+                                        }
+                                        sx={{ width: 80, height: 80, mx: 'auto', mb: 1 }}
                                     />
-                                    <Typography variant="subtitle1">{duser.DUSERNAME}</Typography>
-                                    <Typography variant="body2">{duser.RELATION}</Typography>
+                                    <Typography>{d.DUSERNAME}</Typography>
                                     <Typography variant="caption">
-                                        {formatYearOnly(duser.DBIRTH)} ~ {formatYearOnly(duser.DEATH)}
+                                        {formatYearOnly(d.DBIRTH)} ~ {formatYearOnly(d.DEATH)}
                                     </Typography>
                                 </Paper>
                             </Grid>
                         ))}
                     </Grid>
+
+                    {/* 팔로우한 고인 리스트 */}
+                    <Box component={Paper} {...cardSection}>
+                        <Typography variant="h6" gutterBottom>
+                            내가 팔로우한 고인
+                        </Typography>
+                        <FollowerList
+                            followers={followedDeceased}
+                            onUserClick={id => navigate(`/deceased/${id}`)}
+                        />
+                    </Box>
+
+                    {/* 타임라인 */}
                     <Box sx={{ mt: 6 }}>
-                        <Typography variant="h6" gutterBottom>전체 타임라인</Typography>
+                        <Typography variant="h6" gutterBottom>
+                            전체 타임라인
+                        </Typography>
                         {timelineList.length === 0 ? (
-                            <Typography variant="body2" color="text.secondary">
-                                타임라인이 아직 없습니다.
-                            </Typography>
+                            <Typography color="text.secondary">타임라인이 아직 없습니다.</Typography>
                         ) : (
-                            <Box>
-                                {timelineList.map((item) => (
-                                    <Paper key={item.TIMELINENO} sx={{ p: 2, mb: 2 }}>
-                                        <Typography variant="subtitle2" color="primary">
-                                            {item.dusername} 님
-                                        </Typography>
-                                        <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>{item.content}</Typography>
-                                        <Typography variant="caption" color="text.secondary">
-                                            {new Date(item.created_at).toLocaleString()}
-                                        </Typography>
-                                    </Paper>
-                                ))}
-                            </Box>
+                            timelineList.map(item => (
+                                <Paper key={item.TIMELINENO} sx={{ p: 2, mb: 2 }}>
+                                    <Typography color="primary">{item.dusername} 님</Typography>
+                                    <Typography sx={{ whiteSpace: 'pre-line' }}>{item.content}</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {new Date(item.created_at).toLocaleString()}
+                                    </Typography>
+                                </Paper>
+                            ))
                         )}
                     </Box>
                 </Paper>
             </Box>
+
+            {/* 정보 수정 모달 */}
             <EditProfileModal
                 open={editOpen}
-                onClose={handleEditClose}
+                onClose={() => setEditOpen(false)}
                 userData={info}
+                onUpdated={() => {
+                    setEditOpen(false);
+                }}
             />
         </Container>
     );
 }
-
-export default MyPage;

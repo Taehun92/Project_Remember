@@ -1,0 +1,23 @@
+.mentions__input {
+    min-height: 100px;
+    padding: 10px;
+    font-size: 1rem;
+  }
+  
+  .mentions__suggestions {
+    border: 1px solid #ccc;
+    background: white;
+    font-size: 0.9rem;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+  
+  .mentions__suggestions__item {
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  
+  .mentions__suggestions__item--focused {
+    background-color: #bde4ff;
+  }
+  

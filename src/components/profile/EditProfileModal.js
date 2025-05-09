@@ -4,11 +4,8 @@ import {
     Box, Button, TextField, Typography
 } from '@mui/material';
 import ImageUploader from '../common/ImageUploader';
-import { useSetRecoilState } from 'recoil';
-import { userProfileState } from '../../state/userProfile';
 
 export default function EditProfileModal({ open, onClose, userData, onUpdated }) {
-    const setProfile = useSetRecoilState(userProfileState);
     const [form, setForm] = useState({});
     const [errors, setErrors] = useState({ email: '', phone: '' });
     const [tagnameLock, setTagnameLock] = useState(false);
@@ -24,11 +21,12 @@ export default function EditProfileModal({ open, onClose, userData, onUpdated })
             else if (typeof birth === 'string' && birth.includes('T')) date = birth.split('T')[0];
             else date = birth || '';
 
+            const fullImg = (userData.IMG_PATH || '') + (userData.IMG_NAME || '');
             setForm({
                 ...userData,
                 TAGNAME: userData.TAGNAME?.replace(/^@/, ''),
                 BIRTH: date,
-                profileImg: userData.IMG_PATH || ''
+                profileImg: fullImg       // <-- 경로+파일명 합쳐서 넣어줍니다
             });
             setErrors({ email: '', phone: '' });
             setTagnameLock(false);
@@ -110,19 +108,17 @@ export default function EditProfileModal({ open, onClose, userData, onUpdated })
                 })
             });
             const result = await res.json();
+            console.log('▶ Update API response:', result);
             if (result.success) {
                 alert('정보 수정이 완료되었습니다.');
                 onUpdated && onUpdated({ ...form });
-                setProfile({
-                    IMG_PATH: result.newProfile.IMG_PATH,
-                    IMG_NAME: result.newProfile.IMG_NAME,
-                });
                 onClose();
             } else {
                 alert('수정 실패: ' + result.message);
             }
-        } catch {
-            alert('정보 수정 중 오류 발생');
+        } catch (err) {
+            console.error('Update error ▶', err);
+            alert('정보 수정 중 오류 발생:\n' + err.message);
         }
     };
 
@@ -132,7 +128,7 @@ export default function EditProfileModal({ open, onClose, userData, onUpdated })
             <DialogContent>
                 {/* 이미지 선택 */}
                 <ImageUploader
-                    currentImages={[`http://localhost:3005/${form.profileImg}`]}
+                    currentImages={[ `http://localhost:3005${form.profileImg}` ]}
                     multiple={false}
                     onFilesSelected={setSelectedFiles}
                 />

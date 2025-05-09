@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Drawer,
   List,
@@ -20,6 +20,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { useRecoilState } from 'recoil';
 import { userProfileState } from '../state/userProfile';
+import FeedModal from '../components/feed/FeedModal';
 
 export default function Menu() {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
@@ -30,6 +31,15 @@ export default function Menu() {
   const decoded = token ? jwtDecode(token) : {};
   const userId = decoded.userId;
   const userName = decoded.userName || '사용자';
+
+  const [feedOpen, setFeedOpen] = useState(false);
+
+  const handleOpenFeed = () => {
+    setFeedOpen(true);
+  };
+  const handleCloseFeed = () => {
+    setFeedOpen(false);
+  };
 
   // 프로필 불러오기
   useEffect(() => {
@@ -64,7 +74,8 @@ export default function Menu() {
           <Button
             onClick={() => setConfirmOpen(true)}
             startIcon={<Logout />}
-            sx={{ color: 'error.main', fontSize: 12, p: 0,
+            sx={{
+              color: 'error.main', fontSize: 12, p: 0,
               '&:hover': { color: 'error.dark', fontWeight: 'bold', backgroundColor: 'transparent' }
             }}
           >
@@ -88,13 +99,13 @@ export default function Menu() {
       <Typography variant="h6" sx={{ p: 2 }}>SNS 메뉴</Typography>
 
       <List>
-        <ListItemButton component={Link} to="/feed">
+        <ListItemButton component={Link} to="/feeds">
           <ListItemIcon><Home /></ListItemIcon>
           <ListItemText primary="피드" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/register">
+        <ListItemButton onClick={handleOpenFeed}>
           <ListItemIcon><Add /></ListItemIcon>
-          <ListItemText primary="등록" />
+          <ListItemText primary="피드 등록" />
         </ListItemButton>
         <ListItemButton component={Link} to="/mypage">
           <ListItemIcon><AccountCircle /></ListItemIcon>
@@ -114,6 +125,37 @@ export default function Menu() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* FeedModal */}
+      <FeedModal
+        open={feedOpen}
+        onClose={handleCloseFeed}
+        onSubmit={async ({ contents, attachments }) => {
+          // (1) 본문 먼저 전송
+          const res = await fetch('http://localhost:3005/feeds', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents })
+          });
+          const { feedId } = await res.json();
+
+          // (2) 첨부파일 업로드
+          if (attachments && attachments.length) {
+            const form = new FormData();
+            attachments.forEach(f => form.append('file', f));
+            form.append('feedId', feedId);
+            await fetch('http://localhost:3005/feeds/upload', {
+              method: 'POST',
+              body: form
+            });
+          }
+
+          // (3) 모달 닫기
+          setFeedOpen(false);
+          // (4) 필요하면 뉴스피드 리프레시 콜백 호출
+        }}
+      />
+
     </Drawer>
   );
 }

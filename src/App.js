@@ -4,6 +4,7 @@ import { Box, CssBaseline } from '@mui/material';
 
 import Menu from './pages/Menu';
 import Login from './pages/Login';
+import Feeds from './pages/Feeds';
 import MyPage from './pages/MyPage';
 import DeceasedPage from './pages/DeceasedPage';
 
@@ -19,13 +20,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/feeds" element={<Feeds />} />
           <Route path="/mypage" element={<MyPage />} />
+          <Route path="/mypage/:userId" element={<MyPage />} />
           <Route path="/deceased/:duserId" element={<DeceasedPage />} />
-          
-          {/* <Route path="/feed" element={<Feed />} />
-            
-            <Route path="/register" element={<Register />} />
-             */}
         </Routes>
       </Box>
     </Box>

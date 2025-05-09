@@ -1,27 +1,21 @@
 // src/pages/DeceasedPage.jsx
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Avatar,
-  Typography,
-  Button,
+  Container,
+  Paper,
   Box,
   CircularProgress,
-  Container
+  Typography
 } from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
 
-import EditDeceasedModal from '../components/profile/EditDeceasedModal';
 import DeceasedProfileCard from '../components/profile/DeceasedProfileCard';
-import FollowerList from '../components/profile/FollowerList';
+import FollowerList from '../components/follow/FollowerList';
 import TimelineList from '../components/profile/TimelineList';
 import MentionedFeedList from '../components/profile/MentionedFeedList';
-import UserTagSearch from '../components/common/UserTagSearch';
-import { formatDateOnly } from '../utils/formatData';
+import EditDeceasedModal from '../components/profile/EditDeceasedModal';
+import { cardSection } from '../components/common/styles';
 
 function DeceasedPage() {
   const { duserId } = useParams();
@@ -31,32 +25,57 @@ function DeceasedPage() {
   const [mentions, setMentions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
+  const [error, setError] = useState(null);
   const [managerModalOpen, setManagerModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
   const decoded = jwtDecode(token);
   const userId = decoded.userId;
 
-  useEffect(() => {
-    const fetchFullDeceased = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`http://localhost:3005/deceased/${duserId}`);
-        const data = await res.json();
-        setDeceased(data.deceased);
-        setFollowers(data.followers || []);
-        setTimeline(data.timeline || []);
-        setMentions(data.mentions || []);
-      } catch (err) {
-        console.error('❌ 데이터 로드 실패:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFullDeceased();
+  // 1) 모든 데이터를 가져오는 함수
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 고인 정보
+      const res1 = await fetch(`http://localhost:3005/deceased/${duserId}/info`);
+      if (!res1.ok) throw new Error('고인 정보 조회 실패');
+      const { deceased: d } = await res1.json();
+      setDeceased(d);
+
+      // 팔로워 목록
+      const res2 = await fetch(`http://localhost:3005/follow/${duserId}/followers`);
+      if (!res2.ok) throw new Error('팔로워 목록 조회 실패');
+      const { followers: f } = await res2.json();
+      setFollowers(f);
+
+      // 타임라인
+      const res3 = await fetch(`http://localhost:3005/deceased/${duserId}/timeline`);
+      if (!res3.ok) throw new Error('타임라인 조회 실패');
+      const { timeline: t } = await res3.json();
+      setTimeline(t);
+
+      // 멘션 피드
+      const res4 = await fetch(`http://localhost:3005/deceased/${duserId}/mentions`);
+      if (!res4.ok) throw new Error('멘션 피드 조회 실패');
+      const { mentions: m } = await res4.json();
+      setMentions(m);
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [duserId]);
 
+  // 마운트 및 duserId 변경 시 fetchData 호출
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // 로딩 / 에러 처리
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={10}>
@@ -64,90 +83,64 @@ function DeceasedPage() {
       </Box>
     );
   }
+  if (error) {
+    return (
+      <Box mt={5} textAlign="center">
+        <Typography color="error">에러: {error}</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Container maxWidth="md" sx={{ py: 5 }}>
+      {/* 고인 프로필 카드 */}
       {deceased && (
         <DeceasedProfileCard
-          data={{ ...deceased, followersCount: followers.length }}
+          data={deceased}
           myUserId={userId}
           onEdit={() => setEditOpen(true)}
           onRequestChange={() => setManagerModalOpen(true)}
         />
       )}
-      <FollowerList followers={followers} />
-      <TimelineList data={timeline} />
-      <MentionedFeedList data={mentions} />
 
+      {/* 편집 모달: onUpdated에서 fetchData를 다시 호출 */}
       <EditDeceasedModal
         open={editOpen}
-        onClose={()=>{setEditOpen(false)}}
+        onClose={() => setEditOpen(false)}
         deceasedData={deceased}
+        onUpdated={() => {
+          setEditOpen(false);
+          fetchData();
+        }}
       />
 
-      <Dialog
-        open={managerModalOpen}
-        onClose={() => setManagerModalOpen(false)}
-        maxWidth="sm"
-        fullWidth
+      {/* 팔로워 섹션 */}
+      <Paper {...cardSection}>
+        <Typography variant="h6" gutterBottom>
+          팔로워 목록
+        </Typography>
+        <FollowerList followers={followers} onUserClick={ id => navigate(`/myPage/${id}`) } />
+      </Paper>
+
+      {/* 타임라인 & 멘션피드 섹션 */}
+      <Paper
+        variant="outlined"
+        sx={{
+          mt: 3,
+          p: 2,
+          maxWidth: 800,
+          width: '100%',
+          mx: 'auto'
+        }}
       >
-        <DialogTitle>관리자 변경 신청</DialogTitle>
-        <DialogContent>
-          <Box display="flex" gap={2} alignItems="center" mb={2}>
-            <Avatar
-              src={`http://localhost:3005/${deceased.IMG_PATH || 'default-deceased.png'}`}
-              sx={{ width: 80, height: 80 }}
-            />
-            <Box>
-              <Typography variant="h6">{deceased.DUSERNAME}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {formatDateOnly(deceased.DBIRTH)} ~ {formatDateOnly(deceased.DEATH)}
-              </Typography>
-            </Box>
-          </Box>
-          <UserTagSearch
-            value={selectedUser}
-            onChange={setSelectedUser}
-            label="신청할 사용자 태그네임"
-          />
-        </DialogContent>
-        <DialogActions sx={{ pr: 3, pb: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={async () => {
-              if (!selectedUser) {
-                alert('신청할 사용자를 선택하세요.');
-                return;
-              }
-              try {
-                const res = await fetch('/deceased/request-change', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    duserId: deceased.DUSERID,
-                    fromUserId: userId,
-                    toUserId: selectedUser.USERID,
-                  }),
-                });
-                const result = await res.json();
-                if (result.success) {
-                  alert('신청 완료!');
-                  setManagerModalOpen(false);
-                } else {
-                  alert('신청 실패: ' + result.message);
-                }
-              } catch (err) {
-                console.error('신청 중 오류:', err);
-                alert('서버 오류 발생');
-              }
-            }}
-          >
-            신청
-          </Button>
-          <Button onClick={() => setManagerModalOpen(false)}>취소</Button>
-        </DialogActions>
-      </Dialog>
+        <Typography variant="h6" gutterBottom>
+          타임라인 & 멘션 피드
+        </Typography>
+        <TimelineList data={timeline} />
+        <Box mt={2}>
+          <MentionedFeedList data={mentions} />
+        </Box>
+      </Paper>
     </Container>
   );
 }
