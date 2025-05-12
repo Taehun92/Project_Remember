@@ -47,7 +47,7 @@ function Login() {
         if (data.success) {
           setDialogMessage(data.message);
           localStorage.setItem("token", data.token);
-          navigate("/feed");
+          navigate("/feeds");
         } else {
           setDialogMessage(data.message);
         }

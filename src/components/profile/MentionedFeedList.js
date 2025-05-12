@@ -14,27 +14,29 @@ function MentionedFeedList({ data = [] }) {
   return (
     <Box mt={4}>
       <Typography variant="h6" gutterBottom>멘션된 피드</Typography>
-      {data.map((item) => (
-        <Paper key={item.feedno || item.comment_id} sx={{ p: 2, mb: 2 }}>
-          {/* 상단: 유형 / 시간 */}
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-            <Chip
-              label={item.type === 'FEED' ? '피드' : '댓글'}
-              icon={item.type === 'FEED' ? <Article fontSize="small" /> : <Comment fontSize="small" />}
-              color={item.type === 'FEED' ? 'primary' : 'secondary'}
-              size="small"
-            />
-            <Typography variant="caption" color="text.secondary">
-              {new Date(item.created_at).toLocaleString()}
-            </Typography>
-          </Box>
+      {data.map((item, index) => {
+        return (
+          <Paper key={`mention-${item.itemNo}-${index}`} sx={{ p: 2, mb: 2 }}>
+            {/* 상단: 유형 / 시간 */}
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+              <Chip
+                label={item.type === 'FEED' ? '피드' : '댓글'}
+                icon={item.type === 'FEED' ? <Article fontSize="small" /> : <Comment fontSize="small" />}
+                color={item.type === 'FEED' ? 'primary' : 'secondary'}
+                size="small"
+              />
+              <Typography variant="caption" color="text.secondary">
+                {new Date(item.created_at).toLocaleString()}
+              </Typography>
+            </Box>
 
-          {/* 내용 */}
-          <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-            {item.content}
-          </Typography>
-        </Paper>
-      ))}
+            {/* 내용 */}
+            <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+              {item.content}
+            </Typography>
+          </Paper>
+        );
+      })}
     </Box>
   );
 }

@@ -35,13 +35,13 @@ function DeceasedProfileCard({ data, myUserId, onEdit, onRequestChange }) {
       }}
     >
       {/* 프로필 이미지 */}
-      <Avatar src={imgUrl} alt={DUSERNAME} sx={{ width:100, height:100 }} />
+      <Avatar src={imgUrl} alt={DUSERNAME} sx={{ width: 100, height: 100 }} />
 
       {/* 고인 정보 */}
       <Box flex={1}>
         <Typography variant="h5" fontWeight="bold">{DUSERNAME}</Typography>
         <Typography color="text.secondary" mb={1}>
-          {DBIRTH?.slice(0,4)} ~ {DEATH?.slice(0,4)}
+          {DBIRTH?.slice(0, 4)} ~ {DEATH?.slice(0, 4)}
         </Typography>
         <Typography variant="body2">
           안식처: {REST_PLACE || '정보 없음'}
@@ -79,13 +79,16 @@ function DeceasedProfileCard({ data, myUserId, onEdit, onRequestChange }) {
         />
       )}
 
-       {/* 3) 관리자 변경 신청 버튼 */}
-       {isManager && (
+      {/* 3) 관리자 변경 신청 버튼 */}
+      {isManager && (
         <Button
           size="small"
           variant="text"
           disabled={isRequestPending}
-          onClick={onRequestChange}
+          onClick={() => {
+            console.log('🟡 관리자 변경 버튼 클릭됨');
+            onRequestChange();
+          }}
           sx={{
             position: 'absolute',
             bottom: 16,

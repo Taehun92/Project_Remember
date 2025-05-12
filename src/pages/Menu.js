@@ -25,6 +25,7 @@ import FeedModal from '../components/feed/FeedModal';
 export default function Menu() {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [profile, setProfile] = useRecoilState(userProfileState);
+  const [successOpen, setSuccessOpen] = useState(false);
   const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
@@ -130,32 +131,20 @@ export default function Menu() {
       <FeedModal
         open={feedOpen}
         onClose={handleCloseFeed}
-        onSubmit={async ({ contents, attachments }) => {
-          // (1) 본문 먼저 전송
-          const res = await fetch('http://localhost:3005/feeds', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents })
-          });
-          const { feedId } = await res.json();
-
-          // (2) 첨부파일 업로드
-          if (attachments && attachments.length) {
-            const form = new FormData();
-            attachments.forEach(f => form.append('file', f));
-            form.append('feedId', feedId);
-            await fetch('http://localhost:3005/feeds/upload', {
-              method: 'POST',
-              body: form
-            });
-          }
-
-          // (3) 모달 닫기
-          setFeedOpen(false);
-          // (4) 필요하면 뉴스피드 리프레시 콜백 호출
-        }}
+        onSuccess={() => setSuccessOpen(true)}
       />
 
+      <Dialog open={successOpen} onClose={() => setSuccessOpen(false)}>
+        <DialogTitle>✅ 피드 등록 완료</DialogTitle>
+        <DialogContent>
+          <Typography>피드가 성공적으로 등록되었습니다.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSuccessOpen(false)} autoFocus>
+            확인
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Drawer>
   );
 }

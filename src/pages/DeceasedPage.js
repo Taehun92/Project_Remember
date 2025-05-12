@@ -15,7 +15,9 @@ import FollowerList from '../components/follow/FollowerList';
 import TimelineList from '../components/profile/TimelineList';
 import MentionedFeedList from '../components/profile/MentionedFeedList';
 import EditDeceasedModal from '../components/profile/EditDeceasedModal';
+import ManagerChangeModal from '../components/profile/ManagerChangeModal';
 import { cardSection } from '../components/common/styles';
+
 
 function DeceasedPage() {
   const { duserId } = useParams();
@@ -106,20 +108,32 @@ function DeceasedPage() {
       {/* 편집 모달: onUpdated에서 fetchData를 다시 호출 */}
       <EditDeceasedModal
         open={editOpen}
-        onClose={() => setEditOpen(false)}
+        onClose={() => {
+          console.log('❌ 모달 닫힘 요청됨');
+          setEditOpen(false);
+        }}
         deceasedData={deceased}
         onUpdated={() => {
+          console.log('✅ 정보 수정 완료, 모달 닫기');
           setEditOpen(false);
           fetchData();
         }}
       />
+
+      <ManagerChangeModal
+        open={managerModalOpen}
+        onClose={() => setManagerModalOpen(false)}
+        deceased={deceased}
+        userId={userId}
+      />
+
 
       {/* 팔로워 섹션 */}
       <Paper {...cardSection}>
         <Typography variant="h6" gutterBottom>
           팔로워 목록
         </Typography>
-        <FollowerList followers={followers} onUserClick={ id => navigate(`/myPage/${id}`) } />
+        <FollowerList followers={followers} onUserClick={id => navigate(`/myPage/${id}`)} />
       </Paper>
 
       {/* 타임라인 & 멘션피드 섹션 */}
