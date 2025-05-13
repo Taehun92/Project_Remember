@@ -7,14 +7,10 @@ import UserTagSearch from '../common/UserTagSearch'; // 사용자 검색 컴포�
 import { formatDateOnly } from '../../utils/formatData';
 import { useState } from 'react';
 
-export default function ManagerChangeModal({
-  open,
-  onClose,
-  deceased,
-  userId
-}) {
+export default function ManagerChangeModal({ open, onClose, deceased, userId }) {
   const [selectedUser, setSelectedUser] = useState(null);
-
+  console.log("deceased",deceased);
+  
   const handleSubmit = async () => {
     if (!selectedUser) {
       alert('신청할 사용자를 선택하세요.');
@@ -51,7 +47,7 @@ export default function ManagerChangeModal({
       <DialogContent>
         <Box display="flex" gap={2} alignItems="center" mb={2}>
           <Avatar
-            src={`http://localhost:3005/${deceased.IMG_PATH || 'default-deceased.png'}`}
+            src={`http://localhost:3005${deceased.IMG_PATH}${deceased.IMG_NAME}`}
             sx={{ width: 80, height: 80 }}
           />
           <Box>

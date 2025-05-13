@@ -4,9 +4,9 @@ import './mentions.css';
 
 export default function FeedMentionsInput({ text, onChange, users }) {
     const userSuggestions = users.map(u => ({
-        id: `${u.TYPE}:${u.ID}`,          // USER:1, DUSER:2
-        display: u.TAGNAME,               // Mentions 입력용
-        username: u.USERNAME,             // 보조 텍스트
+        id: `${u.TYPE}:${u.ID}`,
+        display: u.TAGNAME,
+        username: u.USERNAME,
         filepath: u.IMG_PATH || '',
         filename: u.IMG_NAME || ''
     }));
@@ -17,7 +17,6 @@ export default function FeedMentionsInput({ text, onChange, users }) {
             onChange={onChange}
             placeholder="내용을 입력하세요..."
             spellCheck={false}
-            allowSpaceInQuery
             classNames={{
                 control: 'mentions__control',
                 input: 'mentions__input',
@@ -28,7 +27,13 @@ export default function FeedMentionsInput({ text, onChange, users }) {
         >
             <Mention
                 trigger="@"
-                data={userSuggestions}
+                data={(query, callback) => {
+                    query = query || '';
+                    const filtered = userSuggestions.filter((u) =>
+                        u.display?.toLowerCase().includes(query.toLowerCase())
+                    );
+                    callback(filtered);
+                }}
                 markup="@{{__display__}}({{__id__}})"
                 displayTransform={(id, display) => `${display}`}
                 appendSpaceOnAdd
@@ -44,7 +49,11 @@ export default function FeedMentionsInput({ text, onChange, users }) {
                         }}
                     >
                         <img
-                            src={`http://localhost:3005${entry.filepath}${entry.filename}` || ``}
+                            src={
+                                entry.filepath && entry.filename
+                                    ? `http://localhost:3005${entry.filepath}${entry.filename}`
+                                    : '/default-profile.png'
+                            }
                             alt="프로필"
                             style={{
                                 width: 36,
@@ -59,43 +68,6 @@ export default function FeedMentionsInput({ text, onChange, users }) {
                         </div>
                     </div>
                 )}
-            />
-            <Mention
-                trigger="#"
-                data={(query, callback) => {
-                    if (!query || query.trim() === '') return;  // ✅ 방어 로직 추가
-
-                    fetch(`http://localhost:3005/tags/search?tagname=${encodeURIComponent(query)}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            const list = Array.isArray(data.list) ? data.list : [];
-
-                            const suggestions = list.map(tag => ({
-                                id: tag.TAGNO.toString(),
-                                display: tag.TAGNAME
-                            }));
-
-                            const exists = list.some(tag => tag.TAGNAME === query);
-
-                            if (!exists && query.trim()) {
-                                suggestions.push({
-                                    id: `new:${query}`,
-                                    display: `#${query}`
-                                });
-                            }
-
-                            callback(suggestions);
-                        })
-                        .catch(err => {
-                            console.error('태그 검색 오류:', err);
-                            callback([]); // ✅ 실패 시에도 callback 필요
-                        });
-                }}
-                markup="#{{__display__}}({{__id__}})"
-                displayTransform={(id, display) => {
-                    return display.startsWith('#') ? display : `#${display}`;
-                }}
-                appendSpaceOnAdd
             />
         </MentionsInput>
     );

@@ -1,12 +1,18 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import FeedCard from '../components/feed/FeedCard';
+import FeedDetailModal from '../components/feed/FeedDetailModal';
 import { Container, Box, Typography } from '@mui/material';
+import { useSearchParams } from 'react-router-dom'; // 또는 useParams
 
 export default function Feeds() {
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedFeed, setSelectedFeed] = useState(null);
+  const [openDetail, setOpenDetail] = useState(false);
+  const [searchParams] = useSearchParams();
+  const selectedTag = searchParams.get('tag'); // ex) "여행"
   const observerRef = useRef();
 
   const getUserIdFromToken = () => {
@@ -29,35 +35,45 @@ export default function Feeds() {
     setLoading(true);
 
     const lastFeedId = feeds.length > 0 ? feeds[feeds.length - 1].feedId : 2147483647;
-
     const params = new URLSearchParams({
       userId: currentUserId,
       size: 10
     });
 
-    if (lastFeedId !== null) {
-      params.append('lastFeedId', lastFeedId);
-    }
+    if (lastFeedId) params.append('lastFeedId', lastFeedId);
+    if (selectedTag) params.append('tag', selectedTag);
 
     try {
       const res = await fetch(`http://localhost:3005/feeds/list?${params}`);
       const data = await res.json();
 
       if (data.feeds && data.feeds.length > 0) {
-        setFeeds(prev => [...prev, ...data.feeds]);
+        setFeeds(prev => [...new Map([...prev, ...data.feeds].map(f => [f.feedId, f])).values()]);
       }
 
-      if (!data.hasMore || data.feeds.length < 10) {
-        setHasMore(false);
-      }
+      if (!data.hasMore || data.feeds.length < 10) setHasMore(false);
 
-      console.log("list 데이터",data);
     } catch (err) {
       console.error('❌ 피드 불러오기 실패:', err);
     }
 
     setLoading(false);
-  }, [feeds, currentUserId, hasMore, loading, setFeeds, setHasMore, setLoading]); // ✅ 모든 사용 변수 포함
+  }, [feeds, currentUserId, hasMore, loading, selectedTag]);
+
+
+  console.log("feeds", feeds);
+
+
+  // 댓글 입력 후
+  const handleCommentAdded = (feedId) => {
+    setFeeds(prev =>
+      prev.map(f =>
+        f.feedId === feedId
+          ? { ...f, commentCount: (f.commentCount || 0) + 1 }
+          : f
+      )
+    );
+  };
 
   useEffect(() => {
     fetchFeeds();
@@ -85,7 +101,17 @@ export default function Feeds() {
     <Container maxWidth="md">
       <Box sx={{ py: 2 }}>
         {feeds.map(feed => (
-          <FeedCard key={feed.feedId} feed={feed} />
+          <FeedCard
+            key={feed.feedId}
+            feed={feed}
+            onClick={() => {
+              setSelectedFeed(feed);
+              setOpenDetail(true);
+            }}
+            commentCount={feed.commentCount || 0}
+            likeCount={feed.likeCount || 0}
+            likedByMe={feed.liked_by_me || false}
+          />
         ))}
 
         {hasMore && <div ref={observerRef} style={{ height: '1px' }}></div>}
@@ -97,6 +123,13 @@ export default function Feeds() {
           <Typography align="center">❗ 로그인 후 이용해주세요.</Typography>
         )}
       </Box>
+      <FeedDetailModal
+        open={openDetail}
+        onClose={() => setOpenDetail(false)}
+        feedInfo={selectedFeed}
+        imgList={selectedFeed?.images || []}
+        onCommentAdded={handleCommentAdded}
+      />
     </Container>
   );
 }

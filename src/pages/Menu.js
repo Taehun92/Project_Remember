@@ -13,7 +13,9 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  TextField,
+  Autocomplete
 } from '@mui/material';
 import { Home, Add, AccountCircle, Logout } from '@mui/icons-material';
 import { Link, useNavigate } from 'react-router-dom';
@@ -26,14 +28,18 @@ export default function Menu() {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [profile, setProfile] = useRecoilState(userProfileState);
   const [successOpen, setSuccessOpen] = useState(false);
+  const [userOptions, setUserOptions] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [feedOpen, setFeedOpen] = useState(false);
+
   const navigate = useNavigate();
 
+
   const token = localStorage.getItem('token');
-  const decoded = token ? jwtDecode(token) : {};
+  const decoded = jwtDecode(token);
+
   const userId = decoded.userId;
   const userName = decoded.userName || '사용자';
-
-  const [feedOpen, setFeedOpen] = useState(false);
 
   const handleOpenFeed = () => {
     setFeedOpen(true);
@@ -42,6 +48,53 @@ export default function Menu() {
     setFeedOpen(false);
   };
 
+  const handleUserSelect = (event, selectedUser) => {
+    if (selectedUser) {
+      navigate(`/myPage/${selectedUser.id}`);
+    }
+  };
+
+
+  // 유저 검색
+  useEffect(() => {
+    if (!searchText.trim()) {
+      setUserOptions([]);
+      return;
+    }
+
+    console.log('🔍 검색 요청:', searchText); // ✅ 검색어 로그
+
+    fetch(`http://localhost:3005/user/search?tagname=${searchText}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log('📥 서버 응답:', data); // ✅ 응답 로그
+        const options = (data.list || [])
+          .filter(user => {
+            const keyword = searchText.toLowerCase();
+            const matches =
+              (user.TAGNAME || '').toLowerCase().includes(keyword) ||
+              (user.USERNAME || '').toLowerCase().includes(keyword) ||
+              (user.DUSERNAME || '').toLowerCase().includes(keyword);
+            return user.TYPE && matches;
+          })
+          .map(user => {
+            const label = user.TAGNAME || user.USERNAME || user.DUSERNAME || '';
+            const name = user.USERNAME || user.DUSERNAME || '';
+            const type = user.TYPE === 'USER' ? 'USER' : 'DUSER';
+
+            return {
+              id: `${type}:${user.ID}`,
+              display: label,
+              username: name,
+              imgPath: user.IMG_PATH || '',
+              imgName: user.IMG_NAME || '',
+            };
+          });
+        setUserOptions(options);
+      })
+      .catch(err => console.error('❌ 검색 실패:', err));
+  }, [searchText]);
+
   // 프로필 불러오기
   useEffect(() => {
     if (!userId) return;
@@ -49,7 +102,7 @@ export default function Menu() {
       .then(res => res.json())
       .then(data => setProfile(data.info))
       .catch(err => console.error('Menu fetch profile failed:', err));
-  }, [userId, setProfile]);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -97,6 +150,58 @@ export default function Menu() {
 
       <Divider />
 
+      <Box sx={{ px: 2, pb: 2, mt: 4 }}>
+        <Autocomplete
+          freeSolo
+          filterOptions={(x) => x}
+          options={userOptions}
+          value={searchText} // ✅ 입력값 바인딩
+          onInputChange={(_, value) => setSearchText(value)}
+          onFocus={() => setSearchText('')} // ✅ 포커스 시 초기화
+          onChange={(_, value) => {
+            if (value?.id) {
+              const [type, uid] = value.id.split(':');
+              navigate(type === 'DUSER' ? `/deceased/${uid}` : `/mypage/${uid}`);
+            }
+          }}
+          getOptionLabel={(option) =>
+            typeof option === 'string' ? option : option.display || option.label || ''
+          }
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          renderOption={(props, option) => {
+            if (!option || !option.id) return null;
+            return (
+              <Box component="li" {...props} key={option.id} display="flex" alignItems="center" gap={1}>
+                <Avatar
+                  src={
+                    option.imgPath && option.imgName
+                      ? `http://localhost:3005${option.imgPath}${option.imgName}`
+                      : '/default-profile.png'
+                  }
+                  sx={{ width: 32, height: 32 }}
+                />
+                <Box>
+                  <Typography variant="body2" fontWeight="bold">
+                    {option.display}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {option.username}
+                  </Typography>
+                </Box>
+              </Box>
+            );
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="유저 검색"
+              placeholder="@태그명 또는 이름"
+              size="small"
+              variant="outlined"
+            />
+          )}
+        />
+      </Box>
       <Typography variant="h6" sx={{ p: 2 }}>SNS 메뉴</Typography>
 
       <List>
@@ -131,7 +236,9 @@ export default function Menu() {
       <FeedModal
         open={feedOpen}
         onClose={handleCloseFeed}
-        onSuccess={() => setSuccessOpen(true)}
+        onSuccess={() => {
+          setSuccessOpen(true);
+        }}
       />
 
       <Dialog open={successOpen} onClose={() => setSuccessOpen(false)}>
@@ -140,7 +247,14 @@ export default function Menu() {
           <Typography>피드가 성공적으로 등록되었습니다.</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSuccessOpen(false)} autoFocus>
+          <Button
+            onClick={() => {
+              setSuccessOpen(false);    // 모달 닫기
+              setFeedOpen(false);       // 피드 작성 모달도 닫기
+              navigate('/feeds');       // ✅ /feeds 페이지로 이동
+            }}
+            autoFocus
+          >
             확인
           </Button>
         </DialogActions>

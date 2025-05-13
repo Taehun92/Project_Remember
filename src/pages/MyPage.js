@@ -18,6 +18,8 @@ import { formatYearOnly } from '../utils/formatData';
 import { useRecoilState } from 'recoil';
 import { userProfileState } from '../state/userProfile';
 import { cardSection } from '../components/common/styles';
+import UserTimeline from '../components/timeline/UserTimeline';
+import AddDeceasedModal from '../components/profile/AddDeceasedModal';
 
 export default function MyPage() {
     const [info, setInfo] = useState(null);
@@ -26,6 +28,7 @@ export default function MyPage() {
     const [followedDeceased, setFollowedDeceased] = useState([]);
     const [editOpen, setEditOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [addOpen, setAddOpen] = useState(false);
 
     const { userId: loginUserId } = jwtDecode(localStorage.getItem('token'));
     const { userId: routeParam } = useParams();
@@ -122,7 +125,7 @@ export default function MyPage() {
                 <Paper sx={{ width: '100%', p: 3, borderRadius: 2 }} elevation={3}>
                     {/* 프로필 상단 */}
                     <Box sx={{ textAlign: 'center', position: 'relative', mb: 3 }}>
-                        {routeUserId === loginUserId && (
+                        {Number(routeUserId) === Number(loginUserId) && (
                             <Button
                                 size="small"
                                 variant="outlined"
@@ -138,9 +141,12 @@ export default function MyPage() {
                     </Box>
 
                     {/* 관리하는 고인 */}
-                    <Typography variant="h6" gutterBottom>
-                        내가 관리하는 고인
-                    </Typography>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mt={4} mb={1}>
+                        <Typography variant="h6">내가 관리하는 고인</Typography>
+                        <Button variant="outlined" size="small" onClick={() => setAddOpen(true)}>
+                            + 고인 추가
+                        </Button>
+                    </Box>
                     <Grid container spacing={2}>
                         {deceasedList.map(d => (
                             <Grid sx={{ xs: 12, sm: 6, md: 4 }} key={d.DUSERID}>
@@ -186,19 +192,7 @@ export default function MyPage() {
                         <Typography variant="h6" gutterBottom>
                             전체 타임라인
                         </Typography>
-                        {timelineList.length === 0 ? (
-                            <Typography color="text.secondary">타임라인이 아직 없습니다.</Typography>
-                        ) : (
-                            timelineList.map(item => (
-                                <Paper key={item.TIMELINENO} sx={{ p: 2, mb: 2 }}>
-                                    <Typography color="primary">{item.dusername} 님</Typography>
-                                    <Typography sx={{ whiteSpace: 'pre-line' }}>{item.content}</Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {new Date(item.created_at).toLocaleString()}
-                                    </Typography>
-                                </Paper>
-                            ))
-                        )}
+                        <UserTimeline timelineList={timelineList} />
                     </Box>
                 </Paper>
             </Box>
@@ -210,6 +204,16 @@ export default function MyPage() {
                 userData={info}
                 onUpdated={() => {
                     setEditOpen(false);
+                }}
+            />
+
+            {/* 고인 추가 모달 */}
+            <AddDeceasedModal
+                open={addOpen}
+                onClose={() => setAddOpen(false)}
+                onSaved={newDec => {
+                    setDeceasedList(prev => [...prev, newDec]);
+                    setAddOpen(false);
                 }}
             />
         </Container>

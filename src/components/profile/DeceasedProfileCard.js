@@ -39,12 +39,26 @@ function DeceasedProfileCard({ data, myUserId, onEdit, onRequestChange }) {
 
       {/* 고인 정보 */}
       <Box flex={1}>
-        <Typography variant="h5" fontWeight="bold">{DUSERNAME}</Typography>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="h5" fontWeight="bold">{DUSERNAME}</Typography>
+          {REST_PLACE && (
+            <Typography variant="body2" color="text.secondary">
+              (안식처: {REST_PLACE})
+            </Typography>
+          )}
+        </Box>
         <Typography color="text.secondary" mb={1}>
           {DBIRTH?.slice(0, 4)} ~ {DEATH?.slice(0, 4)}
         </Typography>
-        <Typography variant="body2">
-          안식처: {REST_PLACE || '정보 없음'}
+
+        {/* ✅ 고인 소개 */}
+        <Typography
+          variant="body1" // ← 글씨 크기
+          fontWeight="bold" // ← 굵기 강조
+          color="text.primary"
+          sx={{ mt: 1, whiteSpace: 'pre-line' }}
+        >
+          {data.CONTENTS?.trim() ? data.CONTENTS : '소개가 등록되지 않았습니다.'}
         </Typography>
       </Box>
 

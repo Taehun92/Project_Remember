@@ -76,3 +76,13 @@ strong.mention-hash {
   font-weight: bold !important;
   text-decoration: underline !important;
 }
+
+
+.mention-at {
+  min-height: 60px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  overflow-y: auto;
+}

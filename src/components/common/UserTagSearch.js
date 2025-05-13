@@ -4,7 +4,8 @@ import { Autocomplete, TextField, Avatar, ListItem, ListItemAvatar, ListItemText
 function UserTagSearch({ value, onChange, label = "사용자 태그네임" }) {
   const [searchText, setSearchText] = useState('');
   const [options, setOptions] = useState([]);
-
+  console.log("options",options);
+  
   useEffect(() => {
     const fetchUsers = async () => {
       if (!searchText) return;
@@ -35,7 +36,7 @@ function UserTagSearch({ value, onChange, label = "사용자 태그네임" }) {
       renderOption={(props, option) => (
         <ListItem {...props}>
           <ListItemAvatar>
-            <Avatar src={option.FILEPATH && option.FILENAME ? `${option.FILEPATH}${option.FILENAME}` : ''}>
+            <Avatar src={`http://localhost:3005${option.IMG_PATH}${option.IMG_NAME}`}>
               {option.USERNAME[0]}
             </Avatar>
           </ListItemAvatar>

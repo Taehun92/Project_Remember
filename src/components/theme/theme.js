@@ -8,7 +8,7 @@ const theme = createTheme({
     },
     text: {
       primary: '#000000',  // 검정
-      secondary: '#000000', // 보조 회색
+      secondary: '#222222', // 보조 회색
     },
     background: {
       default: '#ffffff',
