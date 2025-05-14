@@ -15,6 +15,7 @@ export default function FeedMentionsInput({ text, onChange, users, minHeight = 4
         <MentionsInput
             value={text}
             onChange={onChange}
+            markup="@{{__display__}}({{__id__}})"
             placeholder="내용을 입력하세요..."
             spellCheck={false}
             classNames={{

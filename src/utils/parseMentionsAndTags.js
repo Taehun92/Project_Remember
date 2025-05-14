@@ -1,24 +1,21 @@
-export function parseMentionsAndTags(text, mentions = [], navigate) {
+export function parseMentionsAndTags(text, mentions = []) {
   if (!text) return '';
 
-  const mentionMap = new Map();
-  mentions.forEach(m => {
-    mentionMap.set(`@{{${m.name}}}({{${m.id}}})`, {
-      type: m.id.split(':')[0],
-      id: m.id.split(':')[1],
-      name: m.name
-    });
-  });
+  let result = text;
 
   // 멘션 변환
-  const replaced = text.replace(/@{{(.*?)}}\(\\?{{(USER|DUSER):(\d+)}}\)/g, (_, display, type, id) => {
-    return `<span class="mention-link" data-type="${type}" data-id="${id}">${display}</span>`;
+  mentions.forEach(({ id, display, name }) => {
+    const tag = display || name; // 👈 핵심!
+    const [type, uid] = id.split(':');
+    const regex = new RegExp(`@${tag}\\(\\{\\{${id}\\}\\}\\)`, 'g');
+    const span = `<span class="mention-link" data-type="${type}" data-id="${uid}">@${tag}</span>`;
+    result = result.replace(regex, span);
   });
 
-  // 태그 변환 (#을 링크처럼 표시)
-  const final = replaced.replace(/#{{(.*?)}}\(\\?{{.*?}}\)/g, (_, name) => {
-    return `<span class="tag-link" data-tag="${name}">#${name}</span>`;
+  // 태그 변환 (#해시태그)
+  result = result.replace(/#(\S+)/g, (match, tag) => {
+    return `<span class="tag-link" data-tag="${tag}">#${tag}</span>`;
   });
 
-  return final;
+  return result;
 }

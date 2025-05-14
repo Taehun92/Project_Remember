@@ -17,7 +17,6 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
   const [files, setFiles] = useState([]);
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
-  const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
   const [visibility, setVisibility] = useState('PUBLIC');
   const navigate = useNavigate(); // 추가
   const MAX_FILES = 5;
@@ -137,17 +136,12 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
 
       setText('');
       setFiles([]);
-      setOpenSuccessDialog(true);
+      onClose();         // 등록 모달 닫기
+      onSuccess?.();
     } catch (err) {
       console.error('[피드 등록 실패]', err);
       alert('피드 등록 중 오류가 발생했습니다.');
     }
-  };
-
-  const handleSuccessConfirm = () => {
-    setOpenSuccessDialog(false);
-    onClose();         // 모달 닫기
-    onSuccess?.();     // 부모 콜백 (예: 피드 목록 새로고침 등)
   };
 
   return (
@@ -208,16 +202,6 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
           등록
         </Button>
       </DialogActions>
-
-      <Dialog open={openSuccessDialog} onClose={() => setOpenSuccessDialog(false)}>
-        <DialogTitle>{mode === 'edit' ? '✅ 피드 수정 완료' : '✅ 피드 등록 완료'}</DialogTitle>
-        <DialogContent>
-          <Typography>{mode === 'edit' ? '피드가 성공적으로 수정되었습니다.' : '피드가 성공적으로 등록되었습니다.'}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleSuccessConfirm} autoFocus>확인</Button>
-        </DialogActions>
-      </Dialog>
     </Dialog>
   );
 }

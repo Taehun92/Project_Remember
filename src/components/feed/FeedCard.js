@@ -14,63 +14,8 @@ import './swiper.css';
 import { useNavigate } from 'react-router-dom';
 import { formatDateOnly } from '../../utils/formatData';
 import { useLikeFeed } from '../../hooks/useLikeFeed';
+import { renderHighlightedText } from '../../utils/renderHighlightedText';
 
-function renderHighlightedText(text, mentions = [], navigate) {
-    const regex = /(@[\w가-힣]+)|(#\w+)/g;
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-    let mentionIndex = 0;
-
-    while ((match = regex.exec(text)) !== null) {
-        const [matched] = match;
-        const start = match.index;
-
-        if (lastIndex < start) parts.push(text.slice(lastIndex, start));
-
-        const isMention = matched.startsWith('@');
-        let href = '#';
-        let onClick = null;
-
-        if (isMention && mentions[mentionIndex]) {
-            const { id } = mentions[mentionIndex];
-            const [type, realId] = id.split(':');
-            if (type === 'USER') {
-                href = `/myPage/${realId}`;
-            } else if (type === 'DUSER') {
-                href = `/deceased/${realId}`;
-            }
-            onClick = () => navigate(href);
-            mentionIndex++;
-        } else {
-            const tagName = matched.slice(1);
-            href = `/tag/${tagName}`;
-            onClick = () => navigate(href);
-        }
-
-        parts.push(
-            <span
-                key={start}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onClick?.();
-                }}
-                style={{
-                    color: isMention ? '#3f51b5' : '#009688',
-                    fontWeight: 500,
-                    cursor: 'pointer'
-                }}
-            >
-                {matched}
-            </span>
-        );
-
-        lastIndex = match.index + matched.length;
-    }
-
-    if (lastIndex < text.length) parts.push(text.slice(lastIndex));
-    return parts;
-}
 
 export default function FeedCard({ feed, onOpenDetail, commentCount, onLikeChange }) {
     const [showComments, setShowComments] = useState(false);
