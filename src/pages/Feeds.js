@@ -60,6 +60,12 @@ export default function Feeds() {
     setLoading(false);
   }, [feeds, currentUserId, hasMore, loading, selectedTag]);
 
+  const handleOpenDetail = (feed) => {
+    setSelectedFeed(feed);     // 최신 liked, likeCount 포함된 상태로 설정
+    setOpenDetail(true);
+  };
+
+
 
   console.log("feeds", feeds);
 
@@ -104,13 +110,22 @@ export default function Feeds() {
           <FeedCard
             key={feed.feedId}
             feed={feed}
-            onClick={() => {
-              setSelectedFeed(feed);
-              setOpenDetail(true);
+            commentCount={feed.commentCount}
+            onOpenDetail={handleOpenDetail}
+            onLikeChange={(updatedLikeData) => {
+              setFeeds(prev =>
+                prev.map(f =>
+                  f.feedId === feed.feedId
+                    ? { ...f, ...updatedLikeData }
+                    : f
+                )
+              );
+
+              // 현재 모달에 열려 있는 피드라면 그것도 업데이트
+              if (selectedFeed?.feedId === feed.feedId) {
+                setSelectedFeed(prev => ({ ...prev, ...updatedLikeData }));
+              }
             }}
-            commentCount={feed.commentCount || 0}
-            likeCount={feed.likeCount || 0}
-            likedByMe={feed.liked_by_me || false}
           />
         ))}
 
@@ -124,11 +139,14 @@ export default function Feeds() {
         )}
       </Box>
       <FeedDetailModal
+        key={selectedFeed?.feedId}  // ← feedId를 key로 설정
         open={openDetail}
         onClose={() => setOpenDetail(false)}
         feedInfo={selectedFeed}
         imgList={selectedFeed?.images || []}
-        onCommentAdded={handleCommentAdded}
+        onDeleteFeed={(deletedId) => {
+          setFeeds(prev => prev.filter(f => f.feedId !== deletedId));
+        }}
       />
     </Container>
   );

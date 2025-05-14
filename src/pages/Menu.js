@@ -249,7 +249,6 @@ export default function Menu() {
         <DialogActions>
           <Button
             onClick={() => {
-              setSuccessOpen(false);    // 모달 닫기
               setFeedOpen(false);       // 피드 작성 모달도 닫기
               navigate('/feeds');       // ✅ /feeds 페이지로 이동
             }}

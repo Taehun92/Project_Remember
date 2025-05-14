@@ -2,7 +2,7 @@ import React from 'react';
 import { MentionsInput, Mention } from 'react-mentions';
 import './mentions.css';
 
-export default function FeedMentionsInput({ text, onChange, users }) {
+export default function FeedMentionsInput({ text, onChange, users, minHeight = 450 }) {
     const userSuggestions = users.map(u => ({
         id: `${u.TYPE}:${u.ID}`,
         display: u.TAGNAME,
@@ -23,6 +23,22 @@ export default function FeedMentionsInput({ text, onChange, users }) {
                 highlighter: 'mentions__highlighter',
                 suggestions: 'mentions__suggestions',
                 mention: 'mention'
+            }}
+            style={{
+                control: {
+                    minHeight: minHeight,
+                    border: 'none',
+                    fontSize: 14,
+                    backgroundColor: '#fff',
+                },
+                input: {
+                    minHeight: minHeight,
+                    padding: 8
+                },
+                highlighter: {
+                    minHeight: minHeight,
+                    padding: 8
+                }
             }}
         >
             <Mention

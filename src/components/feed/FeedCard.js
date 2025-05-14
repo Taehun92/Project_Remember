@@ -13,6 +13,7 @@ import 'swiper/css/navigation';
 import './swiper.css';
 import { useNavigate } from 'react-router-dom';
 import { formatDateOnly } from '../../utils/formatData';
+import { useLikeFeed } from '../../hooks/useLikeFeed';
 
 function renderHighlightedText(text, mentions = [], navigate) {
     const regex = /(@[\w가-힣]+)|(#\w+)/g;
@@ -71,18 +72,18 @@ function renderHighlightedText(text, mentions = [], navigate) {
     return parts;
 }
 
-
-
-export default function FeedCard({ feed, onClick, commentCount, likeCount, likedByMe }) {
+export default function FeedCard({ feed, onOpenDetail, commentCount, onLikeChange }) {
     const [showComments, setShowComments] = useState(false);
-    const [liked, setLiked] = useState(likedByMe);
-    const [likeCnt, setLikeCnt] = useState(likeCount);
     const [commentCnt, setCommentCnt] = useState(commentCount);
+    const { liked, likeCount, toggleLike } = useLikeFeed(feed.liked_by_me, feed.likeCount, feed.feedId)
     const navigate = useNavigate();
 
-    const handleLike = () => {
-        setLiked(!liked);
-        setLikeCnt(prev => (prev => liked ? prev - 1 : prev + 1));
+    const handleLikeClick = () => {
+        toggleLike(); // 내부 상태 변경
+        onLikeChange?.({
+            liked_by_me: !liked,
+            likeCount: liked ? likeCount - 1 : likeCount + 1
+        });
     };
 
     return (
@@ -135,7 +136,14 @@ export default function FeedCard({ feed, onClick, commentCount, likeCount, liked
                         cursor: 'pointer',
                         '&:hover': { transform: 'scale(1.02)' }
                     }}
-                    onClick={onClick}
+                    onClick={() => {
+                        onOpenDetail({
+                            ...feed,
+                            liked_by_me: liked,
+                            likeCount: likeCount,
+                            images: feed.images
+                        });
+                    }}
                 >
                     <Swiper
                         spaceBetween={10}
@@ -175,7 +183,17 @@ export default function FeedCard({ feed, onClick, commentCount, likeCount, liked
             )}
 
             {/* 본문 */}
-            <CardContent onClick={onClick} sx={{ pt: 1, cursor: 'pointer' }}>
+            <CardContent
+                onClick={() => {
+                    onOpenDetail({
+                        ...feed,
+                        liked_by_me: liked,
+                        likeCount,
+                        images: feed.images
+                    });
+                }}
+                sx={{ pt: 1, cursor: 'pointer' }}
+            >
                 <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                     {renderHighlightedText(feed.contents, feed.mentions, navigate)}
                 </Typography>
@@ -183,19 +201,24 @@ export default function FeedCard({ feed, onClick, commentCount, likeCount, liked
 
             {/* 하단 좋아요/댓글 */}
             <Box display="flex" alignItems="center" px={2} pb={1}>
-                <IconButton onClick={(e) => {
-                    e.stopPropagation();
-                    handleLike();
-                }}>
+                <IconButton
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleLikeClick();
+                    }}
+                >
                     {liked ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
                 </IconButton>
-                <Typography variant="body2" mr={2}>
-                    {likeCnt}
-                </Typography>
+                <Typography variant="body2" mr={2}>{likeCount}</Typography>
 
                 <IconButton onClick={(e) => {
                     e.stopPropagation();
-                    onClick?.();
+                    onOpenDetail({
+                        ...feed,
+                        liked_by_me: liked,
+                        likeCount,
+                        images: feed.images
+                    });
                 }}>
                     <ChatBubbleOutlineIcon />
                 </IconButton>

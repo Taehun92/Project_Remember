@@ -1,4 +1,3 @@
-// src/pages/MyPage.jsx
 import React, { useEffect, useState } from 'react';
 import {
     Container,
@@ -8,7 +7,9 @@ import {
     Grid,
     Paper,
     Button,
-    CircularProgress
+    CircularProgress,
+    IconButton,
+    Tooltip
 } from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -20,6 +21,7 @@ import { userProfileState } from '../state/userProfile';
 import { cardSection } from '../components/common/styles';
 import UserTimeline from '../components/timeline/UserTimeline';
 import AddDeceasedModal from '../components/profile/AddDeceasedModal';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 
 export default function MyPage() {
     const [info, setInfo] = useState(null);
@@ -106,6 +108,15 @@ export default function MyPage() {
         );
     }
 
+    const fetchUser = async () => {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:3005/user/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        return data.user;
+    };
+
     // 프로필 이미지 URL
     const imgUrl =
         info.IMG_PATH && info.IMG_NAME
@@ -125,7 +136,7 @@ export default function MyPage() {
                 <Paper sx={{ width: '100%', p: 3, borderRadius: 2 }} elevation={3}>
                     {/* 프로필 상단 */}
                     <Box sx={{ textAlign: 'center', position: 'relative', mb: 3 }}>
-                        {Number(routeUserId) === Number(loginUserId) && (
+                        {Number(routeUserId) === Number(loginUserId) ? (
                             <Button
                                 size="small"
                                 variant="outlined"
@@ -134,6 +145,16 @@ export default function MyPage() {
                             >
                                 정보 수정
                             </Button>
+                        ) : (
+                            <Tooltip title="DM 보내기">
+                                <IconButton
+                                    sx={{ position: 'absolute', top: 0, right: 0 }}
+                                    color="primary"
+                                    onClick={() => alert('DM 기능은 준비 중입니다.')} // 실제 DM 모달 연결 예정
+                                >
+                                    <ChatBubbleOutlineIcon sx={{ fontSize: 38 }} />
+                                </IconButton>
+                            </Tooltip>
                         )}
                         <Avatar src={imgUrl} sx={{ width: 100, height: 100, mx: 'auto', mb: 1 }} />
                         <Typography variant="h5">{info.USERNAME}</Typography>
@@ -143,9 +164,11 @@ export default function MyPage() {
                     {/* 관리하는 고인 */}
                     <Box display="flex" justifyContent="space-between" alignItems="center" mt={4} mb={1}>
                         <Typography variant="h6">내가 관리하는 고인</Typography>
-                        <Button variant="outlined" size="small" onClick={() => setAddOpen(true)}>
-                            + 고인 추가
-                        </Button>
+                        {Number(routeUserId) === Number(loginUserId) && ( // ✅ 조건 추가
+                            <Button variant="outlined" size="small" onClick={() => setAddOpen(true)}>
+                                + 고인 추가
+                            </Button>
+                        )}
                     </Box>
                     <Grid container spacing={2}>
                         {deceasedList.map(d => (
@@ -202,8 +225,16 @@ export default function MyPage() {
                 open={editOpen}
                 onClose={() => setEditOpen(false)}
                 userData={info}
-                onUpdated={() => {
-                    setEditOpen(false);
+                fetchUser={fetchUser}
+                setUser={(updatedUser) => {
+                    setProfile({
+                        IMG_PATH: updatedUser.IMG_PATH,
+                        IMG_NAME: updatedUser.IMG_NAME
+                    });
+                    setInfo(updatedUser); // 화면 갱신을 위해 info도 갱신 ✅
+                }}
+                onUpdated={(updatedUser) => {
+                    setInfo(updatedUser); // 이걸 반드시 해줘야 반영됨 ✅
                 }}
             />
 

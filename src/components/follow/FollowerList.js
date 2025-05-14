@@ -10,7 +10,8 @@ import {
   DialogTitle,
   DialogContent,
   Grid,
-  Button
+  Button,
+  Tooltip
 } from '@mui/material';
 
 const itemStyle = {
@@ -39,12 +40,43 @@ export default function FollowerList({ followers, onUserClick }) {
         onClick={() => onUserClick ? onUserClick(u.USERID) : navigate(`/deceased/${u.USERID}`)}
       >
         <Avatar src={imgUrl} sx={{ width: 56, height: 56, mx: 'auto' }} />
-        <Typography variant="subtitle2" noWrap sx={{ mt: 0.5, letterSpacing: '0.05em' }}>
-          {u.USERNAME}
-        </Typography>
-        <Typography variant="caption" color="text.secondary" noWrap>
-          {u.TAGNAME}
-        </Typography>
+
+        {/* ✅ USERNAME 툴팁 처리 */}
+        <Tooltip title={u.USERNAME}>
+          <Typography
+            variant="subtitle2"
+            noWrap
+            sx={{
+              mt: 0.5,
+              letterSpacing: '0.05em',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              display: 'block',
+              maxWidth: '100%',
+            }}
+          >
+            {u.USERNAME}
+          </Typography>
+        </Tooltip>
+
+        {/* ✅ TAGNAME 툴팁 유지 */}
+        <Tooltip title={u.TAGNAME}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              maxWidth: '100%',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              display: 'block',
+              textAlign: 'center'
+            }}
+          >
+            {u.TAGNAME}
+          </Typography>
+        </Tooltip>
       </Paper>
     );
   };
@@ -69,8 +101,8 @@ export default function FollowerList({ followers, onUserClick }) {
           {followers.length === 0
             ? <Typography>팔로워가 없습니다.</Typography>
             : <Grid container justifyContent="center">
-                {followers.map(renderItem)}
-              </Grid>
+              {followers.map(renderItem)}
+            </Grid>
           }
         </DialogContent>
         <Box textAlign="right" p={1}>

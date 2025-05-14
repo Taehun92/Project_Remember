@@ -21,48 +21,81 @@ import { jwtDecode } from 'jwt-decode';
 import { MentionsInput, Mention } from 'react-mentions';
 import { useNavigate } from 'react-router-dom';
 import { parseMentionsAndTags } from '../../utils/parseMentionsAndTags';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import FeedModal from './FeedModal';
+import { useLikeFeed } from '../../hooks/useLikeFeed';
 
-export default function FeedDetailModal({ open, onClose, feedInfo, imgList }) {
+export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDeleteFeed }) {
   const [feedDetail, setFeedDetail] = useState(null);
   const [comments, setComments] = useState([]);
-  const [likeCount, setLikeCount] = useState(0);
-  const [liked, setLiked] = useState(false);
+  const [commentCount, setCommentCount] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [mentions, setMentions] = useState([]);
+  const [replyTarget, setReplyTarget] = useState(null); // 답글 입력창 노출 대상 commentNo
+  const [replyText, setReplyText] = useState('');
+  const [replyMentions, setReplyMentions] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const { liked, likeCount, toggleLike } = useLikeFeed(feedInfo?.liked_by_me, feedInfo?.likeCount, feedInfo?.feedId);
+  const menuOpen = Boolean(anchorEl);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!feedInfo) return;
     setFeedDetail(feedInfo);
-    setLikeCount(feedInfo.likeCount || 0);
-    setLiked(feedInfo.liked_by_me || false);
-  }, [feedInfo]);
+  }, [feedInfo?.feedId, feedInfo?.likeCount, feedInfo?.liked_by_me]);
 
   useEffect(() => {
-    if (!feedInfo?.feedId) return;
-    fetch(`http://localhost:3005/comments/${feedInfo.feedId}`)
-      .then(res => res.json())
-      .then(data => setComments(data.list || []))
-      .catch(err => console.error('댓글 목록 불러오기 실패:', err));
-    console.log("comments", comments);
+    if (feedInfo?.feedId) {
+      fetchComments();
+    }
+  }, [feedInfo?.feedId]);
 
-  }, [feedInfo]);
-
-  const handleLike = () => {
-    setLiked(prev => !prev);
-    setLikeCount(prev => (liked ? prev - 1 : prev + 1));
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
   };
 
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = () => {
+    setAnchorEl(null);
+    setEditModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    setAnchorEl(null);
+    if (!window.confirm('정말 이 피드를 삭제하시겠습니까?')) return;
+
+    try {
+      const res = await fetch(`http://localhost:3005/feeds/${feedInfo.feedId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert('삭제되었습니다.');
+        onClose(); // 모달 닫기
+        onDeleteFeed?.(feedInfo.feedId);
+      } else {
+        alert('삭제 실패');
+      }
+    } catch (err) {
+      console.error('삭제 오류:', err);
+      alert('서버 오류로 삭제 실패');
+    }
+  };
+  console.log("feedInfo",feedInfo);
+  
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     try {
       const token = localStorage.getItem('token');
       const decoded = jwtDecode(token);
       const userId = decoded.userId;
-
-      const mentionUserIds = mentions
-        .filter(m => m.id.startsWith('USER:') || m.id.startsWith('DUSER:'))
-        .map(m => parseInt(m.id.split(':')[1], 10));
+      const mentionUserIds = mentions.map(m => m.id);
 
       const res = await fetch(`http://localhost:3005/comments/${feedInfo.feedId}`, {
         method: 'POST',
@@ -77,9 +110,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList }) {
 
       const data = await res.json();
       if (data.success) {
-        const commentRes = await fetch(`http://localhost:3005/comments/${feedInfo.feedId}`);
-        const commentData = await commentRes.json();
-        setComments(commentData.list || []);
+        await fetchComments();  // ✅ 여기!
         setNewComment('');
         setMentions([]);
       } else {
@@ -91,6 +122,71 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList }) {
     }
   };
 
+  const handleAddReply = async (parentCommentNo) => {
+    if (!replyText.trim()) return;
+    try {
+      const token = localStorage.getItem('token');
+      const decoded = jwtDecode(token);
+      const userId = decoded.userId;
+      const mentionUserIds = replyMentions.map(m => m.id);
+
+      const res = await fetch(`http://localhost:3005/comments/${feedInfo.feedId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          contents: replyText,
+          parentCommentNo,
+          mentions: mentionUserIds
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        await fetchComments();  // ✅ 여기!
+        setReplyTarget(null);
+        setReplyText('');
+        setReplyMentions([]);
+      } else {
+        alert('답글 등록 실패');
+      }
+    } catch (err) {
+      console.error('답글 등록 중 오류:', err);
+      alert('답글 등록 실패');
+    }
+  };
+
+  const fetchComments = async () => {
+    try {
+      const res = await fetch(`http://localhost:3005/comments/${feedInfo.feedId}`);
+      const data = await res.json();
+      setComments(data.list || []);
+      setCommentCount(data.totalCount || 0);
+    } catch (err) {
+      console.error('댓글 목록 불러오기 실패:', err);
+    }
+  };
+
+  const fetchMentionData = async (search, callback) => {
+    const res = await fetch(`http://localhost:3005/user/search?tagname=${search}`);
+    const data = await res.json();
+    const results = (data.list || []).map(user => {
+      const isUser = user.IMG_PATH?.includes('/profile/');
+      const id = `${isUser ? 'USER' : 'DUSER'}:${user.ID}`;
+      return {
+        id,
+        display: user.TAGNAME,
+        username: user.USERNAME,
+        filepath: user.IMG_PATH || '',
+        filename: user.IMG_NAME || ''
+      };
+    });
+    callback(results);
+  };
+
+  console.log("comments", comments);
+  console.log('💡 feedDetail:', feedDetail);
+  console.log('💡 로그인한 userId:', jwtDecode(localStorage.getItem('token'))?.userId);
   return (
     <>
       <style>{`
@@ -143,18 +239,72 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList }) {
 
       <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
         <DialogTitle sx={{ m: 0, p: 2 }}>
-          피드 상세보기
-          <IconButton
-            aria-label="close"
-            onClick={onClose}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            {/* 👤 작성자 정보 영역 */}
+            <Box display="flex" alignItems="center" gap={1}>
+              <Avatar
+                src={
+                  feedDetail?.user?.profileImg ||
+                  '/default-profile.png'
+                }
+                sx={{ width: 60, height: 60 }}
+              />
+              <Box>
+                <Typography fontWeight="bold" variant="body2">
+                  {feedDetail?.user?.userName}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap>
+                  {feedDetail?.user?.userTagName}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* ⋮ 수정/삭제 버튼 */}
+            <Box>
+              {Number(feedDetail?.user?.userId) === Number(jwtDecode(localStorage.getItem('token'))?.userId) && (
+                <>
+                  <IconButton
+                    onClick={handleMenuOpen}
+                    sx={{ ml: 1 }}
+                  >
+                    <MoreVertIcon />
+                  </IconButton>
+
+                  <Menu anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose}>
+                    <MenuItem onClick={handleEdit}>수정</MenuItem>
+                    <MenuItem onClick={handleDelete}>삭제</MenuItem>
+                  </Menu>
+                </>
+              )}
+              <IconButton
+                aria-label="close"
+                onClick={onClose}
+                sx={{ ml: 1 }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </Box>
         </DialogTitle>
 
-        <DialogContent dividers sx={{ display: 'flex', minHeight: 800, overflow: 'invisible' }}>
-          <Box sx={{ flex: 1, pr: 2 }}>
+        <DialogContent
+          dividers
+          sx={{
+            display: 'flex',
+            height: 'calc(100vh - 150px)',
+            overflow: 'hidden'
+          }}
+        >
+          {/* 왼쪽 피드 본문 영역 */}
+          <Box
+            sx={{
+              flex: 1,
+              pr: 2,
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
             <Typography variant="body1" sx={{ mb: 2 }}>
               {feedDetail?.contents}
             </Typography>
@@ -174,109 +324,211 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList }) {
             )}
           </Box>
 
-
-
+          {/* 오른쪽 댓글 + 입력 영역 */}
           <Box
             sx={{
-              width: 320,
+              width: 360,
               borderLeft: '1px solid #eee',
               display: 'flex',
               flexDirection: 'column',
               height: '100%',
-              position: 'relative', // ✅ 기준점
               backgroundColor: '#fff'
             }}
           >
-            {/* 좋아요 + 댓글 수 표시 */}
+            {/* 좋아요/댓글 수 영역 */}
             <Box sx={{ px: 2, pt: 1, pb: 1 }}>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box display="flex" alignItems="center">
-                  <IconButton onClick={handleLike}>
+                  <IconButton onClick={toggleLike}>
                     {liked ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
                   </IconButton>
                   <Typography variant="body2">{likeCount}</Typography>
                 </Box>
                 <Box display="flex" alignItems="center">
                   <ChatBubbleOutlineIcon sx={{ mr: 0.5 }} />
-                  <Typography variant="body2">{comments.length}</Typography>
+                  <Typography variant="body2">{commentCount}</Typography>
                 </Box>
               </Box>
               <Divider sx={{ mt: 1 }} />
             </Box>
 
-            {/* 댓글 리스트 (스크롤) */}
+            {/* 댓글 리스트 영역 (유동적으로 확장됨) */}
             <Box
               sx={{
                 flex: 1,
                 overflowY: 'auto',
                 px: 2,
-                maxHeight: 'calc(100vh - 230px)', // 모달 타이틀 + 입력창 + 버튼 높이 뺀 값
-                pb: 2,
-                position: 'relative',
-                overflowX: 'visible',
-                overflowY: 'auto'
+                pb: 2
               }}
             >
-              {comments.map((comment, index) => (
-                <Box
-                  key={comment.commentNo}
-                  mb={index === comments.length - 1 ? 22 : 2}  // ✅ 마지막 댓글만 넉넉하게 margin
-                  display="flex"
-                  gap={1}
-                >
-                  <Avatar src={comment.user.img} sx={{ width: 28, height: 28 }} />
-                  <Box>
-                    <Typography fontWeight="bold" variant="body2">
-                      {comment.user.name}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      dangerouslySetInnerHTML={{
-                        __html: parseMentionsAndTags(comment.contents, comment.mentions || [], navigate)
-                      }}
-                      onClick={(e) => {
-                        const target = e.target.closest('.mention-link, .tag-link');
-                        if (target) {
-                          const type = target.dataset.type;
-                          const id = target.dataset.id;
-                          const tag = target.dataset.tag;
-                          if (type === 'USER') navigate(`/myPage/${id}`);
-                          else if (type === 'DUSER') navigate(`/deceased/${id}`);
-                          else if (tag) navigate(`/feeds?tag=${tag}`);
-                        }
-                      }}
-                    />
+              {comments.map((comment) => (
+                <Box key={comment.commentNo} mb={2}>
+                  {/* 댓글 */}
+                  <Box display="flex" gap={1}>
+                    <Avatar src={comment.user.img} sx={{ width: 28, height: 28 }} />
+                    <Box sx={{ flex: 1 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <Typography fontWeight="bold" variant="body2">
+                          {comment.user.name}
+                        </Typography>
+                        <Button
+                          size="small"
+                          sx={{ color: '#d4a52f', fontWeight: 'bold', minWidth: 'auto', p: 0 }}
+                          onClick={() => setReplyTarget(comment.commentNo)}
+                        >
+                          답글 달기
+                        </Button>
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        sx={{ whiteSpace: 'pre-wrap' }}
+                        dangerouslySetInnerHTML={{
+                          __html: parseMentionsAndTags(comment.contents, comment.mentions || [], navigate),
+                        }}
+                        onClick={(e) => {
+                          const target = e.target.closest('.mention-link, .tag-link');
+                          if (target) {
+                            const type = target.dataset.type;
+                            const id = target.dataset.id;
+                            const tag = target.dataset.tag;
+                            if (type === 'USER') navigate(`/myPage/${id}`);
+                            else if (type === 'DUSER') navigate(`/deceased/${id}`);
+                            else if (tag) navigate(`/feeds?tag=${tag}`);
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* 대댓글 입력창 */}
+                  {replyTarget === comment.commentNo && (
+                    <Box mt={1} ml={5}>
+                      <MentionsInput
+                        value={replyText}
+                        onChange={(e, newVal, plainText, mentions) => {
+                          setReplyText(newVal);
+                          setReplyMentions(mentions);
+                        }}
+                        markup="@{{__display__}}({{__id__}})"
+                        classNames={{
+                          control: 'mentions__control',
+                          input: 'mentions__input',
+                          highlighter: 'mentions__highlighter',
+                          suggestions: 'mentions__suggestions'
+                        }}
+                      >
+                        <Mention
+                          trigger="@"
+                          data={fetchMentionData}
+                          markup="@{{__display__}}({{__id__}})"
+                          appendSpaceOnAdd
+                          onAdd={(id, display) => {
+                            setReplyMentions(prev => {
+                              const exists = prev.find(m => m.id === id);
+                              return exists ? prev : [...prev, { id, display }];
+                            });
+                          }}
+                          displayTransform={(id, display) => `${display}`}
+                          renderSuggestion={(entry, search, highlightedDisplay, index, focused) => (
+                            <div
+                              key={entry.id + '-' + index}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                backgroundColor: focused ? '#f0f0f0' : '#fff',
+                                padding: '6px 10px',
+                                borderBottom: '1px solid #eee',
+                                gap: '10px'
+                              }}
+                            >
+                              <img
+                                src={
+                                  entry.filepath && entry.filename
+                                    ? `http://localhost:3005${entry.filepath}${entry.filename}`
+                                    : '/default-profile.png'
+                                }
+                                alt="프로필"
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: '50%',
+                                  objectFit: 'cover'
+                                }}
+                              />
+                              <div style={{ lineHeight: 1.2 }}>
+                                <div style={{ fontWeight: 'bold' }}>{entry.display}</div>
+                                <div style={{ fontSize: '0.8rem', color: '#666' }}>{entry.username}</div>
+                              </div>
+                            </div>
+                          )}
+                        />
+                      </MentionsInput>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        sx={{ mt: 1 }}
+                        onClick={() => handleAddReply(comment.commentNo)}
+                      >
+                        답글 등록
+                      </Button>
+                    </Box>
+                  )}
+
+                  {/* 대댓글 리스트 */}
+                  <Box mt={1} ml={5}>
+                    {comment.children.map((child) => (
+                      <Box key={child.commentNo} display="flex" gap={1} mt={1} alignItems="flex-start">
+                        <Typography sx={{ fontSize: '1rem', color: '#888', mt: '4px' }}>└</Typography>
+                        <Avatar src={child.user.img} sx={{ width: 24, height: 24 }} />
+                        <Box>
+                          <Typography fontWeight="bold" variant="body2">{child.user.name}</Typography>
+                          <Typography
+                            variant="body2"
+                            dangerouslySetInnerHTML={{
+                              __html: parseMentionsAndTags(child.contents, child.mentions || [], navigate)
+                            }}
+                            onClick={(e) => {
+                              const target = e.target.closest('.mention-link, .tag-link');
+                              if (target) {
+                                const type = target.dataset.type;
+                                const id = target.dataset.id;
+                                const tag = target.dataset.tag;
+                                if (type === 'USER') navigate(`/myPage/${id}`);
+                                else if (type === 'DUSER') navigate(`/deceased/${id}`);
+                                else if (tag) navigate(`/feeds?tag=${tag}`);
+                              }
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    ))}
                   </Box>
                 </Box>
               ))}
             </Box>
 
-            {/* 입력창 + 등록 버튼 (하단 고정) */}
+            {/* 댓글 입력창 + 버튼 */}
             <Box
               sx={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                bgcolor: '#fff',
                 px: 2,
                 pt: 2,
                 pb: 2,
                 borderTop: '1px solid #eee',
-                zIndex: 10,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1
+                backgroundColor: '#fff'
               }}
             >
-              {/* 입력창 */}
               <Box
                 sx={{
                   border: '1px solid #ccc',
                   borderRadius: 2,
                   padding: 1,
                   backgroundColor: '#fff',
-                  // 🔥 overflow 제거 (또는 overflow: visible)
                   overflow: 'visible'
                 }}
               >
@@ -317,22 +569,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList }) {
                 >
                   <Mention
                     trigger="@"
-                    data={async (search, callback) => {
-                      const res = await fetch(`http://localhost:3005/user/search?tagname=${search}`);
-                      const data = await res.json();
-                      const results = (data.list || []).map(user => {
-                        const isUser = user.IMG_PATH?.includes('/profile/');
-                        const id = `${isUser ? 'USER' : 'DUSER'}:${user.ID}`;
-                        return {
-                          id,
-                          display: user.TAGNAME,
-                          username: user.USERNAME,
-                          filepath: user.IMG_PATH || '',
-                          filename: user.IMG_NAME || ''
-                        };
-                      });
-                      callback(results);
-                    }}
+                    data={fetchMentionData}
                     displayTransform={(id, display) => `${display}`}
                     markup="@{{__display__}}({{__id__}})"
                     appendSpaceOnAdd
@@ -371,8 +608,6 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList }) {
                   />
                 </MentionsInput>
               </Box>
-
-              {/* 버튼 */}
               <Button
                 variant="contained"
                 color="primary"
@@ -384,7 +619,28 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList }) {
             </Box>
           </Box>
         </DialogContent>
-      </Dialog>
+
+      </Dialog >
+
+      {/* 피드 수정용 모달 */}
+      <FeedModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSuccess={() => {
+          setEditModalOpen(false);
+          onClose(); // 기존 피드 상세 닫기
+          // 필요 시 피드 목록 리프레시 로직도 추가 가능
+        }}
+        // ✅ 수정 시 기존 내용 전달
+        initialData={{
+          feedId: feedDetail?.feedId,
+          contents: feedDetail?.contents,
+          mentions: feedDetail?.mentions,
+          tags: feedDetail?.tags,
+          images: imgList, // 기존 이미지 전달 (필요한 경우)
+        }}
+        mode="edit" // 수정 모드
+      />
     </>
   );
 }

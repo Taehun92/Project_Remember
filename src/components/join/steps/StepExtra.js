@@ -12,18 +12,19 @@ function StepExtra({ onNext, onBack, formData, setFormData }) {
   const [confirmSkipOpen, setConfirmSkipOpen] = useState(false);
 
   const handleNext = () => {
-    if (!name || !gender || !birth || !addr) {
+    if (!name.trim() || !gender || !birth || !addr.trim()) {
       setConfirmSkipOpen(true);
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        name,
-        gender,
-        birth,
-        addr,
-      }));
-      onNext();
+      return;
     }
+
+    setFormData((prev) => ({
+      ...prev,
+      name: name.trim(),
+      gender,
+      birth,
+      addr: addr.trim(),
+    }));
+    onNext();
   };
 
   const confirmAndProceed = () => {
@@ -60,9 +61,14 @@ function StepExtra({ onNext, onBack, formData, setFormData }) {
         <TextField
           label="생년월일"
           type="date"
+          value={birth}
+          onChange={(e) => setBirth(e.target.value)}
           fullWidth
           size="small"
-          InputLabelProps={{ shrink: true }} // ✅ label을 위로 올림
+          inputProps={{
+            max: new Date().toISOString().split("T")[0]  // 오늘 날짜까지
+          }}
+          InputLabelProps={{ shrink: true }}
         />
 
         <TextField

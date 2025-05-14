@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import ImageUploader from '../common/ImageUploader';
 
-export default function EditProfileModal({ open, onClose, userData, onUpdated }) {
+export default function EditProfileModal({ open, onClose, userData, fetchUser, setUser, onUpdated }) {
     const [form, setForm] = useState({});
     const [errors, setErrors] = useState({ email: '', phone: '' });
     const [tagnameLock, setTagnameLock] = useState(false);
@@ -111,8 +111,17 @@ export default function EditProfileModal({ open, onClose, userData, onUpdated })
             console.log('▶ Update API response:', result);
             if (result.success) {
                 alert('정보 수정이 완료되었습니다.');
-                onUpdated && onUpdated({ ...form });
+
+                try {
+                    const updated = await fetchUser();
+                    setUser(updated);
+                    onUpdated && onUpdated({ ...updated });
+                } catch (fetchErr) {
+                    console.warn('유저 정보 재조회 실패:', fetchErr);
+                }
+
                 onClose();
+                window.location.reload();
             } else {
                 alert('수정 실패: ' + result.message);
             }
@@ -128,7 +137,7 @@ export default function EditProfileModal({ open, onClose, userData, onUpdated })
             <DialogContent>
                 {/* 이미지 선택 */}
                 <ImageUploader
-                    currentImages={[ `http://localhost:3005${form.profileImg}` ]}
+                    currentImages={[`http://localhost:3005${form.profileImg}`]}
                     multiple={false}
                     onFilesSelected={setSelectedFiles}
                 />
