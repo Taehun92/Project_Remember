@@ -17,7 +17,7 @@ import {
   TextField,
   Autocomplete
 } from '@mui/material';
-import { Home, Add, AccountCircle, Logout } from '@mui/icons-material';
+import { Home, Add, AccountCircle, Logout, ChatBubble } from '@mui/icons-material';
 import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { useRecoilState } from 'recoil';
@@ -214,7 +214,7 @@ export default function Menu() {
           <ListItemText primary="피드 등록" />
         </ListItemButton>
         <ListItemButton component={Link} to="/dm">
-          <ListItemIcon><AccountCircle /></ListItemIcon>
+          <ListItemIcon><ChatBubble /></ListItemIcon>
           <ListItemText primary="DM" />
         </ListItemButton>
         <ListItemButton component={Link} to="/mypage">

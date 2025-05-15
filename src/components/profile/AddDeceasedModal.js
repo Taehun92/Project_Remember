@@ -93,7 +93,7 @@ export default function AddDeceasedModal({ open, onClose, onSaved }) {
                         * 는 필수 입력 항목입니다.
                     </Typography>
                     <TextField
-                        label="이름 *"
+                        label="이름 * (나중에 실제 구현 시 이름 앞에 자동으로 '故 ' 붙여서 저장 )"
                         value={form.name}
                         onChange={e => handleChange('name', e.target.value)}
                         fullWidth

@@ -223,10 +223,10 @@ export default function MyPage() {
 
                     {/* 관리하는 고인 */}
                     <Box display="flex" justifyContent="space-between" alignItems="center" mt={4} mb={1}>
-                        <Typography variant="h6">내가 관리하는 고인</Typography>
+                        <Typography variant="h6">기억을 남긴 인연</Typography>
                         {Number(routeUserId) === Number(loginUserId) && ( // ✅ 조건 추가
                             <Button variant="outlined" size="small" onClick={() => setAddOpen(true)}>
-                                + 고인 추가
+                                + 기억 추가
                             </Button>
                         )}
                     </Box>
@@ -262,7 +262,7 @@ export default function MyPage() {
                     {/* 팔로우한 고인 리스트 */}
                     <Box component={Paper} {...cardSection}>
                         <Typography variant="h6" gutterBottom>
-                            내가 팔로우한 고인
+                            기억을 나누는 인연
                         </Typography>
                         <FollowerList
                             followers={followedDeceased}

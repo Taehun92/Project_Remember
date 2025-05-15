@@ -31,7 +31,7 @@ export default function FollowButton({ myUserId, targetUserId, sx }) {
 
   return (
     <Button variant="contained" onClick={toggleFollow} sx={sx}>
-      {isFollowing ? '언팔로우' : '팔로우'}
+      {isFollowing ? '잊어두기' : '함께 기억'}
     </Button>
   );
 }
