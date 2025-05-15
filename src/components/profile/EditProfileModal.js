@@ -271,8 +271,8 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
                 </Box>
             </DialogContent>
             <DialogActions sx={{ pr: 4, pb: 3 }}>
-                <Button variant="contained" color="primary" onClick={handleUpdate}>변경</Button>
                 <Button onClick={onClose}>돌아가기</Button>
+                <Button variant="contained" color="primary" onClick={handleUpdate}>변경</Button>
             </DialogActions>
         </Dialog>
     );

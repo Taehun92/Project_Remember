@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Feeds from './pages/Feeds';
 import MyPage from './pages/MyPage';
 import DeceasedPage from './pages/DeceasedPage';
+import DMPage from './pages/DMPage';
 
 function App() {
   const location = useLocation();
@@ -24,6 +25,8 @@ function App() {
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/mypage/:userId" element={<MyPage />} />
           <Route path="/deceased/:duserId" element={<DeceasedPage />} />
+          <Route path="/dm" element={<DMPage />} />
+          <Route path="/dm/:targetId" element={<DMPage />} />
         </Routes>
       </Box>
     </Box>

@@ -1,4 +1,5 @@
 export function renderHighlightedText(text, mentions = [], navigate) {
+  text = text.replace(/@{{([^{}]+)}}\(\{\{[^{}]+\}\}\)/g, '$1');
   const regex = /(@[\w가-힣]+)|(#\w+)/g;
   const parts = [];
   let lastIndex = 0;

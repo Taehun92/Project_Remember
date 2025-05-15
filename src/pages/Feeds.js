@@ -3,7 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 import FeedCard from '../components/feed/FeedCard';
 import FeedDetailModal from '../components/feed/FeedDetailModal';
 import { Container, Box, Typography } from '@mui/material';
-import { useSearchParams } from 'react-router-dom'; // 또는 useParams
+import { useSearchParams, useLocation } from 'react-router-dom'; // 또는 useParams
 
 export default function Feeds() {
   const [feeds, setFeeds] = useState([]);
@@ -11,8 +11,12 @@ export default function Feeds() {
   const [hasMore, setHasMore] = useState(true);
   const [selectedFeed, setSelectedFeed] = useState(null);
   const [openDetail, setOpenDetail] = useState(false);
+  const [highlightedFeedId, setHighlightedFeedId] = useState(null);
   const [searchParams] = useSearchParams();
   const selectedTag = searchParams.get('tag'); // ex) "여행"
+  const location = useLocation();
+  const scrollToFeedId = location.state?.scrollToFeedId;
+  const feedRefs = useRef({});
   const observerRef = useRef();
 
   const getUserIdFromToken = () => {
@@ -103,6 +107,20 @@ export default function Feeds() {
     };
   }, [fetchFeeds]);
 
+  // 마이페이지에서 피드 찾아 이동 / 강조
+  useEffect(() => {
+    if (scrollToFeedId && feedRefs.current[scrollToFeedId]) {
+      const el = feedRefs.current[scrollToFeedId];
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // 강조 효과 부여
+      setHighlightedFeedId(scrollToFeedId);
+
+      // 일정 시간 후 강조 제거
+      setTimeout(() => setHighlightedFeedId(null), 2000);
+    }
+  }, [feeds, scrollToFeedId]);
+
   return (
     <Container maxWidth="md">
       <Box sx={{ py: 2 }}>
@@ -111,7 +129,11 @@ export default function Feeds() {
             key={feed.feedId}
             feed={feed}
             commentCount={feed.commentCount}
+            ref={(el) => {
+              if (el) feedRefs.current[feed.feedId] = el;
+            }}
             onOpenDetail={handleOpenDetail}
+            highlighted={feed.feedId === highlightedFeedId}
             onLikeChange={(updatedLikeData) => {
               setFeeds(prev =>
                 prev.map(f =>

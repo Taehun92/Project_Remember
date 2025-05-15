@@ -4,7 +4,7 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#d4af37', // 골드
+      main: '#B29700', // 골드
     },
     text: {
       primary: '#000000',  // 검정

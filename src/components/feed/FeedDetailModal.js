@@ -214,10 +214,11 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
 
   const handleDeleteComment = async (commentNo) => {
     if (!window.confirm('이 댓글을 삭제할까요?')) return;
-
     try {
       const res = await fetch(`http://localhost:3005/comments/${commentNo}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
       });
 
       const data = await res.json();
@@ -532,12 +533,65 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
                           highlighter: 'mentions__highlighter',
                           suggestions: 'mentions__suggestions'
                         }}
+                        style={{
+                          control: {
+                            backgroundColor: '#fff',
+                            border: '1px solid #ccc',
+                            borderRadius: '6px',
+                            padding: '8px',
+                            fontSize: 14,
+                            width: '100%',
+                            minHeight: 60
+                          },
+                          input: {
+                            padding: 0,
+                            minHeight: 60,
+                            outline: 'none'
+                          },
+                          highlighter: {
+                            padding: 0,
+                            minHeight: 60
+                          }
+                        }}
                       >
                         <Mention
                           trigger="@"
                           data={fetchMentionData}
                           markup="@{{__display__}}({{__id__}})"
+                          displayTransform={(id, display) => `${display}`}
                           appendSpaceOnAdd
+                          renderSuggestion={(entry, search, highlightedDisplay, index, focused) => (
+                            <div
+                              key={entry.id + '-' + index}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                backgroundColor: focused ? '#f0f0f0' : '#fff',
+                                padding: '6px 10px',
+                                borderBottom: '1px solid #eee',
+                                gap: '10px'
+                              }}
+                            >
+                              <img
+                                src={
+                                  entry.filepath && entry.filename
+                                    ? `http://localhost:3005${entry.filepath}${entry.filename}`
+                                    : '/default-profile.png'
+                                }
+                                alt="프로필"
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: '50%',
+                                  objectFit: 'cover'
+                                }}
+                              />
+                              <div style={{ lineHeight: 1.2 }}>
+                                <div style={{ fontWeight: 'bold' }}>{entry.display}</div>
+                                <div style={{ fontSize: '0.8rem', color: '#666' }}>{entry.username}</div>
+                              </div>
+                            </div>
+                          )}
                         />
                       </MentionsInput>
                       <Button size="small" variant="contained" sx={{ mt: 1 }} onClick={() => handleSubmitEdit(comment.commentNo)}>
@@ -630,11 +684,10 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
                           <Typography fontWeight="bold" variant="body2">{child.user.name}</Typography>
                           <Typography
                             variant="body2"
-                            dangerouslySetInnerHTML={{
-                              __html: parseMentionsAndTags(child.contents, child.mentions || [], navigate)
-                            }}
                             onClick={handleMentionClick}
-                          />
+                          >
+                            {renderHighlightedText(child.contents || '', child.mentions || [], navigate)}
+                          </Typography>
                           {/* ⬇️ 작성일 + 좋아요 아이콘 추가 */}
                           <Box display="flex" alignItems="center" gap={1}>
                             <Typography variant="caption" color="text.secondary">

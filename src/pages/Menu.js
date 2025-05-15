@@ -213,6 +213,10 @@ export default function Menu() {
           <ListItemIcon><Add /></ListItemIcon>
           <ListItemText primary="피드 등록" />
         </ListItemButton>
+        <ListItemButton component={Link} to="/dm">
+          <ListItemIcon><AccountCircle /></ListItemIcon>
+          <ListItemText primary="DM" />
+        </ListItemButton>
         <ListItemButton component={Link} to="/mypage">
           <ListItemIcon><AccountCircle /></ListItemIcon>
           <ListItemText primary="마이페이지" />

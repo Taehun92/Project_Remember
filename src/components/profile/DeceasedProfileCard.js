@@ -9,7 +9,7 @@ function DeceasedProfileCard({ data, myUserId, onEdit, onRequestChange }) {
   const {
     DUSERNAME, IMG_PATH, IMG_NAME,
     DBIRTH, DEATH, REST_PLACE,
-    PRIMARY_USERID, AGENT_USERID, DUSERID
+    PRIMARY_USERID, AGENT_USERID, DUSERID, DTAGNAME
   } = data;
 
   const imgUrl = IMG_PATH && IMG_NAME
@@ -47,9 +47,7 @@ function DeceasedProfileCard({ data, myUserId, onEdit, onRequestChange }) {
             </Typography>
           )}
         </Box>
-        <Typography color="text.secondary" mb={1}>
-          {DBIRTH?.slice(0, 4)} ~ {DEATH?.slice(0, 4)}
-        </Typography>
+        <Typography variant="h8" fontWeight="semibold" color="text.secondary"  mb={1} >{DTAGNAME} {DBIRTH?.slice(0, 4)} ~ {DEATH?.slice(0, 4)}</Typography>
 
         {/* ✅ 고인 소개 */}
         <Typography

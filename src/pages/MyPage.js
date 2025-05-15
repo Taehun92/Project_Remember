@@ -22,6 +22,8 @@ import { cardSection } from '../components/common/styles';
 import UserTimeline from '../components/timeline/UserTimeline';
 import AddDeceasedModal from '../components/profile/AddDeceasedModal';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import NewsFeedCard from '../components/feed/NewsFeedCard';
+import FeedDetailModal from '../components/feed/FeedDetailModal';
 
 export default function MyPage() {
     const [info, setInfo] = useState(null);
@@ -31,6 +33,9 @@ export default function MyPage() {
     const [editOpen, setEditOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [addOpen, setAddOpen] = useState(false);
+    const [newsFeedLogs, setNewsFeedLogs] = useState([]);
+    const [selectedFeed, setSelectedFeed] = useState(null);
+    const [feedModalOpen, setFeedModalOpen] = useState(false);
 
     const { userId: loginUserId } = jwtDecode(localStorage.getItem('token'));
     const { userId: routeParam } = useParams();
@@ -73,6 +78,14 @@ export default function MyPage() {
                 const resTime = await fetch(`http://localhost:3005/user/timeline/${routeUserId}`);
                 console.log('/user/timeline ▶', resTime.ok, await resTime.clone().json());
                 setTimelineList((await resTime.json()).list || []);
+
+                // 5) 뉴스피드 로그
+                const resNewsFeed = await fetch(`http://localhost:3005/newsfeed?userId=${routeUserId}`);
+                console.log('/newsfeed ▶', resNewsFeed.ok, await resNewsFeed.clone().json());
+                const newsFeedData = await resNewsFeed.json();
+                console.log('/newsfeed ▶', Array.isArray(newsFeedData), newsFeedData); // 이거 찍어보면 정확히 나와요
+                // 다음처럼 고치기
+                setNewsFeedLogs(Array.isArray(newsFeedData) ? newsFeedData : newsFeedData.data || newsFeedData.list || []);
 
             } catch (err) {
                 console.error('데이터 로드 실패:', err);
@@ -118,10 +131,40 @@ export default function MyPage() {
     };
 
     // 프로필 이미지 URL
-    const imgUrl =
-        info.IMG_PATH && info.IMG_NAME
-            ? `http://localhost:3005${info.IMG_PATH}${info.IMG_NAME}`
-            : '/default-profile.png';
+    const imgUrl = info.IMG_PATH && info.IMG_NAME ? `http://localhost:3005${info.IMG_PATH}${info.IMG_NAME}` : '/default-profile.png';
+
+    // 타임라인 피드 클릭
+    const handleFeedClick = async (feedId) => {
+        try {
+            const res = await fetch(`http://localhost:3005/feeds/${feedId}`);
+            const data = await res.json();
+
+            setSelectedFeed({
+                feedId,
+                contents: data.info.CONTENTS,
+                mentions: [], // 필요 시 서버에서 내려받기
+                tags: [], // 필요 시
+                images: data.info.images || [],
+                liked_by_me: data.info.liked_by_me,
+                likeCount: data.info.likeCount,
+                user: {
+                    userId: data.info.USERID,
+                    userName: data.info.USERNAME,
+                    userTagName: data.info.TAGNAME,
+                    profileImg: `http://localhost:3005${data.info.IMG_PATH}${data.info.IMG_NAME}`
+                }
+            });
+            setFeedModalOpen(true);
+        } catch (err) {
+            console.error('피드 상세 조회 실패:', err);
+        }
+    };
+
+
+
+
+
+    console.log('✅ newsFeedLogs:', Array.isArray(newsFeedLogs), newsFeedLogs);
 
     return (
         <Container maxWidth="md">
@@ -150,7 +193,24 @@ export default function MyPage() {
                                 <IconButton
                                     sx={{ position: 'absolute', top: 0, right: 0 }}
                                     color="primary"
-                                    onClick={() => alert('DM 기능은 준비 중입니다.')} // 실제 DM 모달 연결 예정
+                                    onClick={async () => {
+                                        try {
+                                            const res = await fetch(
+                                                `http://localhost:3005/dm/createOrGetRoom?user1=${loginUserId}&user2=${routeUserId}`
+                                            );
+
+                                            if (!res.ok) {
+                                                const text = await res.text(); // HTML 응답일 수 있으니 문자열로 읽기
+                                                console.error('⚠️ DM 방 생성 실패 응답:', text);
+                                                throw new Error('DM 방 생성 실패: ' + res.status);
+                                            }
+
+                                            const room = await res.json(); // ✅ 이제 안전하게 파싱
+                                            navigate(`/dm/${routeUserId}`);
+                                        } catch (err) {
+                                            console.error('DM 방 생성 실패:', err);
+                                        }
+                                    }}
                                 >
                                     <ChatBubbleOutlineIcon sx={{ fontSize: 38 }} />
                                 </IconButton>
@@ -210,12 +270,34 @@ export default function MyPage() {
                         />
                     </Box>
 
-                    {/* 타임라인 */}
+                    {/* 뉴스피드 로그 */}
                     <Box sx={{ mt: 6 }}>
                         <Typography variant="h6" gutterBottom>
-                            전체 타임라인
+                            최근 활동 소식
                         </Typography>
-                        <UserTimeline timelineList={timelineList} />
+
+                        {newsFeedLogs.length === 0 ? (
+                            <Typography variant="body2" color="text.secondary">
+                                아직 활동 로그가 없습니다.
+                            </Typography>
+                        ) : (
+                            newsFeedLogs.map((log) => (
+                                <NewsFeedCard
+                                    key={log.logId}
+                                    log={log}
+                                    onClick={() => {
+                                        if (log.source) {
+                                            const feedId = log.source.feedId || log.source.id; // COMMENT는 feedId, FEED는 id
+                                            if (feedId) {
+                                                navigate('/feeds', {
+                                                    state: { scrollToFeedId: feedId }
+                                                });
+                                            }
+                                        }
+                                    }}
+                                />
+                            ))
+                        )}
                     </Box>
                 </Paper>
             </Box>

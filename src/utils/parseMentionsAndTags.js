@@ -5,10 +5,12 @@ export function parseMentionsAndTags(text, mentions = []) {
 
   // 멘션 변환
   mentions.forEach(({ id, display, name }) => {
-    const tag = display || name; // 👈 핵심!
+    const tag = display || name;
     const [type, uid] = id.split(':');
-    const regex = new RegExp(`@${tag}\\(\\{\\{${id}\\}\\}\\)`, 'g');
-    const span = `<span class="mention-link" data-type="${type}" data-id="${uid}">@${tag}</span>`;
+
+    // ⬇️ 이중 중괄호로 둘러싼 멘션 패턴 처리
+    const regex = new RegExp(`@\\{\\{${tag}\\}\\}\\(\\{\\{${id}\\}\\}\\)`, 'g');
+    const span = `<span class="mention-link" data-type="${type}" data-id="${uid}" data-tag="${tag}">@${tag}</span>`;
     result = result.replace(regex, span);
   });
 

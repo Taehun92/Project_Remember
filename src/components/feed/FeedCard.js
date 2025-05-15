@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import {
     Card, CardHeader, CardContent, Avatar,
     Typography, Box, IconButton, Divider
@@ -17,7 +17,7 @@ import { useLikeFeed } from '../../hooks/useLikeFeed';
 import { renderHighlightedText } from '../../utils/renderHighlightedText';
 
 
-export default function FeedCard({ feed, onOpenDetail, commentCount, onLikeChange }) {
+const FeedCard = forwardRef(({ feed, onOpenDetail, commentCount, onLikeChange, highlighted }, ref) => {
     const [showComments, setShowComments] = useState(false);
     const [commentCnt, setCommentCnt] = useState(commentCount);
     const { liked, likeCount, toggleLike } = useLikeFeed(feed.liked_by_me, feed.likeCount, feed.feedId)
@@ -32,7 +32,16 @@ export default function FeedCard({ feed, onOpenDetail, commentCount, onLikeChang
     };
 
     return (
-        <Card sx={{ mb: 3 }}>
+        <Card
+            ref={ref}
+            sx={{
+                mb: 3,
+                border: highlighted ? '2px solid #B29700' : 'none',          // 진중한 금색 테두리
+                boxShadow: highlighted ? '0 0 8px rgba(178, 151, 0, 0.5)' : 1, // 금색 그림자
+                backgroundColor: highlighted ? '#fffbe6' : 'white',           // 약간 따뜻한 배경 (#fffbe6)
+                transition: 'all 0.2s ease'
+            }}
+        >
             {/* 작성자 클릭 분리 */}
             <CardHeader
                 avatar={
@@ -187,4 +196,6 @@ export default function FeedCard({ feed, onOpenDetail, commentCount, onLikeChang
             )}
         </Card>
     );
-}
+});
+
+export default FeedCard;
