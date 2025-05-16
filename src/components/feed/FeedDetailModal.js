@@ -1,5 +1,5 @@
 // src/components/feed/FeedDetailModal.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -27,6 +27,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import FeedModal from './FeedModal';
+import FeedMentionsInput from './FeedMentionsInput';
 import { useLikeFeed } from '../../hooks/useLikeFeed';
 
 export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDeleteFeed }) {
@@ -244,22 +245,28 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
     }
   };
 
-  const fetchMentionData = async (search, callback) => {
-    const res = await fetch(`http://localhost:3005/user/search?tagname=${search}`);
-    const data = await res.json();
-    const results = (data.list || []).map(user => {
-      const isUser = user.IMG_PATH?.includes('/profile/');
-      const id = `${isUser ? 'USER' : 'DUSER'}:${user.ID}`;
-      return {
-        id,
-        display: user.TAGNAME,
-        username: user.USERNAME,
-        filepath: user.IMG_PATH || '',
-        filename: user.IMG_NAME || ''
-      };
-    });
-    callback(results);
-  };
+  const fetchMentionData = useCallback((query, callback) => {
+    const cleaned = query.replace(/^@/, '').toLowerCase();
+    fetch(`http://localhost:3005/user/search?all=true`) // 전체 목록 받아오고
+      .then(res => res.json())
+      .then(data => {
+        const filtered = (data.list || []).filter(user =>
+          user.TAGNAME.toLowerCase().includes(cleaned)
+        ).map(user => {
+          const isUser = user.IMG_PATH?.includes('/profile/');
+          return {
+            id: `${isUser ? 'USER' : 'DUSER'}:${user.ID}`,
+            display: user.TAGNAME,
+            username: user.USERNAME,
+            filepath: user.IMG_PATH || '',
+            filename: user.IMG_NAME || ''
+          };
+        });
+
+        console.log('✅ 필터링된 결과:', filtered); // 확인용
+        callback(filtered);
+      });
+  }, []);
 
   function formatDateTime(dateString) {
     const date = new Date(dateString);
