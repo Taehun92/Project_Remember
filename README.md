@@ -10,11 +10,13 @@
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;">💡 프로젝트 소개 </h2>
     <li>해당 프로젝트는 SNS 사이트로, 개인 프로젝트로 진행했습니다.</li>
     <li>React와 Node.js를 활용했으며, 인스타그램의 페이지 UI를 참고해서 진행했습니다.</li>
+     <li>Re:member 는 유저들에 의하여 고인을 다시 한번 기억하겠다는 의미를 지니고 있는 고인 추모용 SNS 서비스입니다.</li>
+     <li>고인의 유족들 (관리자)는 해당 SNS를 통하여 고인을 기억해 주는 사람의 존재를 빠르게 확인 할 수 있습니다.</li>
     </div>
     <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 🗓 개발 기간 </h2>  
         <ul>
-            <li> <h4>05/07 ~ 05/19</h4>
+            <li> <h4>2025.05/07 ~ 2025.05/19 약 12일 </h4>
                 <ul>
                     <li>프로젝트 기획 구상, DB설계, 서비스 개발, 테스트 및 수정</li>
                 </ul>
@@ -43,8 +45,8 @@
          <div align="center">
               <img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/feedlist.PNG" width="600px;" />
               <h4>메인 페이지</h4>
-               <div> 본인 및 본인이 관리하는 고인 & 팔로우 한 고인들이 언급된 게시글을 스크롤 형식으로 내려서 목록을 확인할 수 있게 구현, 
-                    게시글 클릭 시 상세화면과 댓글을 작성할 수 있게 모달창이 나오며, 사이드바에 탭들을 추가해 쉽게 페이지 이동할 수 있게 구현하였습니다.
+               <div>본인이 관리하는 고인 & 팔로우 한 고인들 및 본인이 작성, 언급된 게시글들을 스크롤 형식으로 구현, 
+                    게시글 클릭 시 상세화면과 댓글을 작성할 수 있게 모달창이 나오며, 사이드 바에 탭들을 추가해 쉽게 페이지 이동할 수 있게 구현하였습니다.
                </div>
           </div>
          <br />
@@ -53,13 +55,13 @@
          <div align="center">
          <img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/feedDetail.PNG" width="600px;" />
          <h4>상세 페이지, 모달창</h4>
-         <div>게시글 클릭 시, 모달창을 통해 상세 페이지가 나오게 구현, 댓글 및 대댓글 작성이 가능합니다.</div>
+         <div>게시글 클릭 시, 모달창을 통해 본문 및 이미지들과 상세 페이지가 나오게 구현, 댓글 및 대댓글 작성이 가능합니다.</div>
          </div>
          <br />
          <br />
 
          <div align="center">
-         <img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/addFeed.PNG" width="600px;" />
+         <img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/feedadd.PNG" width="600px;" />
          <h4>게시글 업로드 모달창 구현</h4>
          <div>사이드바에서 게시글 등록 클릭 시, 게시글 등록 전용 모달창이 나오게 구현, 이미지는 최대 5장 첨부 가능, 공개범위를 설정 가능하며, 본문에서 멘션과 태그 기능을 사용하여 특정인원을 언급 할 수 있습니다.</div>
          </div>
