@@ -8,13 +8,13 @@
     </div> 
 <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;">💡 프로젝트 소개 </h2>
-    <li>해당 프로젝트는 SNS 사이트로 개인 프로젝트를 진행했습니다.</li>
+    <li>해당 프로젝트는 SNS 사이트로, 개인 프로젝트로 진행했습니다.</li>
     <li>React와 Node.js를 활용했으며, 인스타그램의 페이지 UI를 참고해서 진행했습니다.</li>
     </div>
     <div style= "text-align:left;">
     <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 🗓 개발 기간 </h2>  
         <ul>
-            <li> <h4>04/03 ~ 04/11</h4>
+            <li> <h4>05/07 ~ 05/19</h4>
                 <ul>
                     <li>프로젝트 기획 구상, DB설계, 서비스 개발, 테스트 및 수정</li>
                 </ul>
@@ -25,18 +25,6 @@
     <div style="font-weight: 700; font-size: 15px; text-align: left; color: #282d33;">  </div> 
     </div>
     <div style= "text-align:left;">
-    <h2 tabindex="-1" class="heading-element" dir="auto" >👨‍👩‍👦‍👦 팀원 구성</h2>
-        <table >
-            <tr>
-                <th>이름</th>                    
-                <th>GitHub 프로필</th>
-            </tr>
-            <tr>
-                <td>이진순</td>
-                <td>https://github.com/lsssssssssssssss</td>
-            </tr>
-            </table>
-        </div>
 <div style= "text-align:left;">
     <h2 style="color: #282d33;"> 🛠️ 사용 언어 </h2>
     <div style="margin: 0 auto; text-align: left;" align= "left">
