@@ -45,6 +45,8 @@
 <div>회원가입은 모달창으로 step별로 분리, 당장에 작성이 어려운 경우</div>
 <div>추후 마이페이지에서 수정이 가능하다는 부분을 언급하여 회원가입의 번거로움을 최소화 하였습니다.</div>
 </div>
+<br />
+<br />
 <div align="center">
 <img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/feedlist.PNG" width="600px;" />
 <h4>메인 페이지</h4>
@@ -83,6 +85,8 @@
 <div>고인페이지에서는 프로필이미지 수정 및 고인에 대한 정보 수정 등이 가능하며, </div>
 <div>관리자의 고인 관리가 어려울 경우를 대비하여 관리자 변경 신청이 가능합니다. 관리자가 아닌 일반 유저는 기억(팔로우)를 할 수 있는 공간입니다.</div>
 </div>
+<br />
+<br />
 <div align="center">
 <img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/dm.PNG" width="600px;" />
 <h4>다이렉트 메시지 페이지</h4>
