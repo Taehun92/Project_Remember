@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="[feedlist](https://github.com/Taehun92/Project_Remember/blob/master/readme_img/feedlist.PNG)" />
+    [feedlist](https://github.com/Taehun92/Project_Remember/blob/master/readme_img/feedlist.PNG)
 </div>
     
 <div align="center">
