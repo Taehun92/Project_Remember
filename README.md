@@ -94,9 +94,7 @@
 <br />
 <div style= "text-align:left;">
 <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 🎇 프로젝트 후기 </h2>   
-<div align="center">
-React를 활용하여 SNS를 만들었습니다.  
-</div>
+<div>React를 활용하여 SNS를 만들었습니다.  </div>
 <div>useState를 활용하여 렌더링 개념은 이해하였으나 같은 페이지 내에서 렌더링이 일어나야 하는 </div>
 <div>여러 조건들을 전부 충족 하게 만들어 내는데 조금 어려움이 있었습니다.</div>
 <div>또한, 페이지 내부에서 직접 코드를 작성하는 부분을 최소화하였다면, </div>
