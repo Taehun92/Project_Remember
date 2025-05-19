@@ -48,8 +48,8 @@
 <div align="center">
 <img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/feedlist.PNG" width="600px;" />
 <h4>메인 페이지</h4>
-<div>본인이 관리하는 고인 & 기억(팔로우) 한 고인들 및 본인이 작성, 언급된 게시글들을 스크롤 형식으로 구현, 
-게시글 클릭 시 상세화면과 댓글을 작성할 수 있게 모달창이 나오며,</div>
+<div>본인이 관리하는 고인 & 기억(팔로우) 한 고인들 및 본인이 작성, 언급된 게시글들을 스크롤 형식으로 구현, </div>
+<div>게시글 클릭 시 상세화면과 댓글을 작성할 수 있게 모달창이 나오며,</div>
 <div>사이드 바에 탭들을 추가해 쉽게 페이지 이동할 수 있게 구현하였습니다.
 </div>
 </div>
