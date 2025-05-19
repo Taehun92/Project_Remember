@@ -35,6 +35,16 @@ export default function DmPage() {
             .then((data) => setRoomList(data.rooms || []));
     }, []);
 
+    const fetchRooms = () => {
+        fetch(`http://localhost:3005/dm/list?userId=${loginUserId}`)
+            .then((res) => res.json())
+            .then((data) => setRoomList(data.rooms || []));
+    };
+
+    useEffect(() => {
+        fetchRooms();
+    }, []);
+
     return (
         <Box display="flex" height="90vh" border="1px solid #ccc">
             <ChatList
@@ -43,7 +53,7 @@ export default function DmPage() {
                 onSelectRoom={setSelectedRoom}
                 selectedRoom={selectedRoom}
             />
-            <ChatWindow room={selectedRoom} myId={loginUserId} />
+            <ChatWindow room={selectedRoom} myId={loginUserId} onRefreshRooms={fetchRooms} />
         </Box>
     );
 }

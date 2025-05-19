@@ -10,7 +10,7 @@ import {
     ListItemText
 } from '@mui/material';
 
-export default function ChatWindow({ room, myId }) {
+export default function ChatWindow({ room, myId, onRefreshRooms }) {
     const [messages, setMessages] = useState([]);
     const [newMsg, setNewMsg] = useState('');
 
@@ -43,7 +43,8 @@ export default function ChatWindow({ room, myId }) {
             body: JSON.stringify({
                 roomno: room.roomno,
                 sender_id: myId,
-                contents: newMsg
+                contents: newMsg,
+                
             })
         })
             .then((res) => {
@@ -51,9 +52,10 @@ export default function ChatWindow({ room, myId }) {
                 return res.json();
             })
             .then(() => {
-                const newMessage = { sender_id: myId, contents: newMsg };
+                const newMessage = { sender_id: myId, contents: newMsg, sent_at: new Date().toISOString()};
                 setMessages([...messages, newMessage]);
                 setNewMsg('');
+                onRefreshRooms();
             })
             .catch(err => {
                 console.error('💥 메시지 전송 실패:', err);

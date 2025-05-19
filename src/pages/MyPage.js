@@ -19,11 +19,9 @@ import { formatYearOnly } from '../utils/formatData';
 import { useRecoilState } from 'recoil';
 import { userProfileState } from '../state/userProfile';
 import { cardSection } from '../components/common/styles';
-import UserTimeline from '../components/timeline/UserTimeline';
 import AddDeceasedModal from '../components/profile/AddDeceasedModal';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import NewsFeedCard from '../components/feed/NewsFeedCard';
-import FeedDetailModal from '../components/feed/FeedDetailModal';
 
 export default function MyPage() {
     const [info, setInfo] = useState(null);
