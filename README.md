@@ -65,7 +65,7 @@
 <br />
 <div align="center">
 <img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/myPage.PNG" width="400px;" />
-<img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/decreasedPage.PNG" width="400px;" />
+<img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/deceasedPage.PNG" width="400px;" />
 <img src="" width="400px;" />
 <h4>프로필 페이지</h4>
 <div>마이페이지에서는 내가 관리 및 기억(팔로우) 하는 고인을 확인 할 수 있고, 개인정보 수정이 가능합니다.</div>
