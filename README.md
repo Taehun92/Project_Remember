@@ -11,7 +11,7 @@
 <div style= "text-align:left;">
 <h2 style="border-bottom: 1px solid #d8dee4; color: #282d33;"> 🗓 개발 기간 </h2>  
 <ul>
-<li> <h4>2025.05/07 ~ 2025.05/19 약 12일 </h4>
+<li> <h4>2025. 05. 07 ~ 2025. 05. 19 약 12일 </h4>
 <ul>
 <li>프로젝트 기획 구상, DB설계, 서비스 개발, 테스트 및 수정</li>
 </ul>
