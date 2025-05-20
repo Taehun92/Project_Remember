@@ -15,7 +15,7 @@ export default function CommentInput({ feedNo, onSubmit }) {
         userId: 3, // 실제 로그인 유저 ID로 대체
         contents: text,
         mentions: []
-      })
+      }) 
     });
 
     if (res.ok) {
