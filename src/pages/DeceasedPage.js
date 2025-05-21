@@ -12,8 +12,6 @@ import { jwtDecode } from 'jwt-decode';
 
 import DeceasedProfileCard from '../components/profile/DeceasedProfileCard';
 import FollowerList from '../components/follow/FollowerList';
-import TimelineList from '../components/profile/TimelineList';
-import MentionedFeedList from '../components/profile/MentionedFeedList';
 import EditDeceasedModal from '../components/profile/EditDeceasedModal';
 import ManagerChangeModal from '../components/profile/ManagerChangeModal';
 import NewsFeedCard from '../components/feed/NewsFeedCard';

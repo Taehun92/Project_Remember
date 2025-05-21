@@ -4,8 +4,6 @@ import { Button } from '@mui/material';
 export default function FollowButton({ myUserId, targetUserId, sx }) {
   const [isFollowing, setIsFollowing] = useState(false);
 
-  console.log("세션로그인아이디",myUserId);
-  console.log("고인페이지아이디",targetUserId);
 
   useEffect(() => {
     // 마운트 시 팔로우 상태 조회

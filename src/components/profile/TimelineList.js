@@ -1,4 +1,3 @@
-// src/components/profile/TimelineList.jsx
 import { Box, Typography, Paper, Chip } from '@mui/material';
 import { ChatBubble, Notifications, AlternateEmail, Article } from '@mui/icons-material';
 

@@ -1,4 +1,3 @@
-// src/hooks/useLikeFeed.js
 import { useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
@@ -21,7 +20,7 @@ export function useLikeFeed(initialLiked, initialCount, feedId) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ userId }) // DELETE에도 body 사용 (Express에서 처리 가능해야 함)
+        body: JSON.stringify({ userId })
       });
 
       const data = await res.json();

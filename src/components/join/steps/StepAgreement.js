@@ -15,7 +15,7 @@ function StepAgreement({ onBack, onSubmit, formData }) {
     all: false,
     terms: false,
     privacy: false,
-    marketing: false, // 선택 사항
+    marketing: false,
   });
 
   // 전체 동의 토글 시 개별 항목 변경

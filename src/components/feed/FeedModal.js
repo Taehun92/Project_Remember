@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, Box, Stack, Paper, Typography, IconButton
+  Button, Box, Stack, Paper, Typography
 } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
 import ImageUploader from '../common/ImageUploader';
 import FeedMentionsInput from './FeedMentionsInput';
 import { jwtDecode } from 'jwt-decode';
 import './mentions.css';
-import { useNavigate } from 'react-router-dom'; // 추가
 
 export default function FeedModal({ open, onClose, onSuccess, initialData = null, mode = 'create' }) {
   const [text, setText] = useState('');
@@ -18,9 +16,9 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
   const [visibility, setVisibility] = useState('PUBLIC');
-  const navigate = useNavigate(); // 추가
   const MAX_FILES = 5;
 
+  // 토큰 - userId 받아오기
   const getUserIdFromToken = () => {
     const token = localStorage.getItem('token');
     if (!token) return null;
@@ -55,7 +53,7 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
       // 수정 모드일 때 기존 이미지 보여주기 위한 구조 추가
       if (initialData.images?.length > 0) {
         const existing = initialData.images.map(img => ({
-          src: img.src, // or `${imgPath}${imgName}` 구조에 따라 조정
+          src: img.src,
           file: null
         }));
         setFiles(existing);
@@ -69,6 +67,7 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
     setMentions(mentionList);
   };
 
+  // 피드 등록
   const handleSave = async () => {
     if (!userId) {
       alert('로그인이 필요합니다.');
@@ -104,7 +103,7 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
           mentions: mentionUserIds,
           tags: finalTags,
           visibility,
-          images: [] // 이미지 처리 필요 시 확장
+          images: []
         })
       });
 
@@ -116,6 +115,7 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
 
       const feedId = createData.feedId;
 
+      // 이미지 업로드
       const newFiles = files.filter(f => f.file !== null);
       if (newFiles.length > 0) {
         const formData = new FormData();
@@ -136,7 +136,7 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
 
       setText('');
       setFiles([]);
-      onClose();         // 등록 모달 닫기
+      onClose();  
       onSuccess?.();
     } catch (err) {
       console.error('[피드 등록 실패]', err);

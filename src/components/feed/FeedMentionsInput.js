@@ -1,4 +1,3 @@
-import React from 'react';
 import { MentionsInput, Mention } from 'react-mentions';
 import './mentions.css';
 

@@ -7,6 +7,7 @@ function UserTagSearch({ value, onChange, label = "사용자 태그네임" }) {
   console.log("options",options);
   
   useEffect(() => {
+    // 사용자 태그네임 검색
     const fetchUsers = async () => {
       if (!searchText) return;
       try {

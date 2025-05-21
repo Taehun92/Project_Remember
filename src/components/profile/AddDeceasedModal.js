@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Button, TextField, Stack, MenuItem, Typography
 } from '@mui/material';
-
-const genderOptions = ['M', 'F'];
 
 export default function AddDeceasedModal({ open, onClose, onSaved }) {
     const [form, setForm] = useState({
@@ -22,6 +20,7 @@ export default function AddDeceasedModal({ open, onClose, onSaved }) {
         setForm(prev => ({ ...prev, [key]: value }));
     };
 
+    // 고인등록 - 첨부파일 관련
     const handleFileChange = (e) => {
         const selected = Array.from(e.target.files);
         if (selected.length + files.length > 10) {
@@ -35,6 +34,7 @@ export default function AddDeceasedModal({ open, onClose, onSaved }) {
         setFiles(prev => prev.filter((_, i) => i !== index));
     };
 
+    // 고인 등록 요청
     const handleSave = async () => {
         const { name, birth, death, gender, relation, restPlace, contents } = form;
         if (!name || !birth || !death || !gender || !relation) {

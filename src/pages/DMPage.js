@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ChatList from '../components/dm/ChatList';
 import ChatWindow from '../components/dm/ChatWindow';
@@ -13,7 +13,6 @@ export default function DmPage() {
     const [roomList, setRoomList] = useState([]);
     const [selectedRoom, setSelectedRoom] = useState(null);
 
-    // ✅ 여기에 있어야 함!
     useEffect(() => {
         if (targetId) {
             fetch(`http://localhost:3005/dm/createOrGetRoom?user1=${loginUserId}&user2=${targetId}`)

@@ -9,6 +9,7 @@ export default function ImageUploader({
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState(currentImages);
 
+  // 파일 url 가져오기 - 파일 첨부 시 동작 
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files);
     setFiles(selected);

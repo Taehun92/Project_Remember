@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     Card,
     CardHeader,
@@ -6,15 +5,14 @@ import {
     Typography,
     CardContent,
     CardMedia,
-    Box,
-    Chip
+    Box
 } from '@mui/material';
 import { renderHighlightedText } from '../../utils/renderHighlightedText';
 import { useNavigate } from 'react-router-dom';
 
 
 function NewsFeedCard({ log, onClick }) {
-    const { actor, summary, createdAt, source, liked_by_me, likeCount } = log;
+    const { actor, summary, createdAt, source } = log;
     const navigate = useNavigate();
 
     const formatTime = (iso) => {

@@ -1,4 +1,4 @@
-import React, { useState, forwardRef } from 'react';
+import { useState, forwardRef } from 'react';
 import {
     Card, CardHeader, CardContent, Avatar,
     Typography, Box, IconButton, Divider
@@ -16,13 +16,14 @@ import { formatDateOnly } from '../../utils/formatData';
 import { useLikeFeed } from '../../hooks/useLikeFeed';
 import { renderHighlightedText } from '../../utils/renderHighlightedText';
 
-
+// 스크롤 동작을 위하여 forwardRef 처리
 const FeedCard = forwardRef(({ feed, onOpenDetail, commentCount, onLikeChange, highlighted }, ref) => {
     const [showComments, setShowComments] = useState(false);
     const [commentCnt, setCommentCnt] = useState(commentCount);
     const { liked, likeCount, toggleLike } = useLikeFeed(feed.liked_by_me, feed.likeCount, feed.feedId)
     const navigate = useNavigate();
 
+    // 기억해요(좋아요)
     const handleLikeClick = () => {
         toggleLike(); // 내부 상태 변경
         onLikeChange?.({
@@ -36,9 +37,9 @@ const FeedCard = forwardRef(({ feed, onOpenDetail, commentCount, onLikeChange, h
             ref={ref}
             sx={{
                 mb: 3,
-                border: highlighted ? '2px solid #B29700' : 'none',          // 진중한 금색 테두리
-                boxShadow: highlighted ? '0 0 8px rgba(178, 151, 0, 0.5)' : 1, // 금색 그림자
-                backgroundColor: highlighted ? '#fffbe6' : 'white',           // 약간 따뜻한 배경 (#fffbe6)
+                border: highlighted ? '2px solid #B29700' : 'none',
+                boxShadow: highlighted ? '0 0 8px rgba(178, 151, 0, 0.5)' : 1,
+                backgroundColor: highlighted ? '#fffbe6' : 'white',
                 transition: 'all 0.2s ease'
             }}
         >

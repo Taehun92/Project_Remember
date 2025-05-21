@@ -20,14 +20,12 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { jwtDecode } from 'jwt-decode';
 import { MentionsInput, Mention } from 'react-mentions';
 import { useNavigate } from 'react-router-dom';
-import { parseMentionsAndTags } from '../../utils/parseMentionsAndTags';
 import { renderHighlightedText } from '../../utils/renderHighlightedText';
 import { parseMentionMarkup } from '../../utils/parseMentionMarkup';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import FeedModal from './FeedModal';
-import FeedMentionsInput from './FeedMentionsInput';
 import { useLikeFeed } from '../../hooks/useLikeFeed';
 
 export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDeleteFeed }) {
@@ -51,6 +49,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
   const token = localStorage.getItem('token');
   const decoded = jwtDecode(token);
   const userId = decoded.userId;
+
 
   useEffect(() => {
     setFeedDetail(feedInfo);
@@ -98,6 +97,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
     }
   };
 
+  // 댓글 등록
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     try {
@@ -131,6 +131,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
     }
   };
 
+  // 대댓글 등록
   const handleAddReply = async (parentCommentNo) => {
     if (!replyText.trim()) return;
     try {
@@ -165,6 +166,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
     }
   };
 
+  // 멘션 클릭 시 페이지 이동
   const handleMentionClick = (e) => {
     const target = e.target.closest('.mention-link, .tag-link');
     if (!target) return;
@@ -178,6 +180,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
     else if (tag) navigate(`/feeds?tag=${tag}`);
   };
 
+  // 댓글 수정 모달
   const handleEditComment = (comment) => {
     setEditTargetComment(comment);
 
@@ -186,6 +189,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
     setEditMentions(mentions);    // 👉 MentionsInput용 mentions [{id, display}]
   };
 
+  // 댓글 수정
   const handleSubmitEdit = async (commentNo) => {
     try {
       const res = await fetch(`http://localhost:3005/comments/${commentNo}`, {
@@ -213,6 +217,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
     }
   };
 
+  // 댓글 삭제
   const handleDeleteComment = async (commentNo) => {
     if (!window.confirm('이 댓글을 삭제할까요?')) return;
     try {
@@ -234,6 +239,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
     }
   };
 
+  // 댓글 불러오기
   const fetchComments = async () => {
     try {
       const res = await fetch(`http://localhost:3005/comments/${feedInfo.feedId}`);
@@ -245,6 +251,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
     }
   };
 
+  // 멘션 불러오기
   const fetchMentionData = useCallback((query, callback) => {
     const cleaned = query.replace(/^@/, '').toLowerCase();
     fetch(`http://localhost:3005/user/search?all=true`) // 전체 목록 받아오고
@@ -262,8 +269,6 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
             filename: user.IMG_NAME || ''
           };
         });
-
-        console.log('✅ 필터링된 결과:', filtered); // 확인용
         callback(filtered);
       });
   }, []);
@@ -279,11 +284,6 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
 
     return `${year}.${month}.${day} ${hour}:${minute}`;
   }
-
-  console.log("comments", comments);
-  console.log('💡 feedDetail:', feedDetail);
-  console.log(feedInfo);
-  console.log('💡 로그인한 userId:', jwtDecode(localStorage.getItem('token'))?.userId);
 
   return (
     <>

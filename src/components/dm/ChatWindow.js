@@ -1,5 +1,5 @@
 // ChatWindow.jsx
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
     Box,
     Typography,
@@ -7,7 +7,6 @@ import {
     Button,
     List,
     ListItem,
-    ListItemText
 } from '@mui/material';
 
 export default function ChatWindow({ room, myId, onRefreshRooms }) {
@@ -17,6 +16,7 @@ export default function ChatWindow({ room, myId, onRefreshRooms }) {
     const messageEndRef = useRef(null);
 
     useEffect(() => {
+        // 대화방 번호로 기존 대화 기록 조회
         if (!room) return;
         fetch(`http://localhost:3005/dm/history?roomno=${room.roomno}`)
             .then((res) => {
@@ -24,7 +24,7 @@ export default function ChatWindow({ room, myId, onRefreshRooms }) {
                 return res.json();
             })
             .then((data) => {
-                setMessages(data.messages || []); // ✅ 이게 누락됐음!
+                setMessages(data.messages || []);
             })
             .catch((err) => {
                 console.error('💥 메시지 조회 실패:', err);
@@ -35,6 +35,7 @@ export default function ChatWindow({ room, myId, onRefreshRooms }) {
         messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    // DM 전송
     const handleSend = () => {
         if (!newMsg.trim()) return;
         fetch('http://localhost:3005/dm/send', {

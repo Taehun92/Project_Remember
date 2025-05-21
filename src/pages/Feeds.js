@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import FeedCard from '../components/feed/FeedCard';
 import FeedDetailModal from '../components/feed/FeedDetailModal';
@@ -33,6 +33,7 @@ export default function Feeds() {
 
   const currentUserId = getUserIdFromToken();
 
+  // 피드 조회
   const fetchFeeds = useCallback(async () => {
     if (loading || !hasMore || !currentUserId) return;
 
@@ -70,24 +71,9 @@ export default function Feeds() {
   };
 
 
-
-  console.log("feeds", feeds);
-
-
-  // 댓글 입력 후
-  const handleCommentAdded = (feedId) => {
-    setFeeds(prev =>
-      prev.map(f =>
-        f.feedId === feedId
-          ? { ...f, commentCount: (f.commentCount || 0) + 1 }
-          : f
-      )
-    );
-  };
-
   useEffect(() => {
     fetchFeeds();
-  }, [fetchFeeds]); // ✅ 의존성 추가 
+  }, [fetchFeeds]); 
 
   // IntersectionObserver
   useEffect(() => {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Box, Button, TextField, Avatar
+  Box, Button, TextField
 } from '@mui/material';
 import ImageUploader from '../common/ImageUploader';
 import { formatDateOnly } from '../../utils/formatData';

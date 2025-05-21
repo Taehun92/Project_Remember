@@ -11,6 +11,7 @@ export default function ManagerChangeModal({ open, onClose, deceased, userId }) 
   const [selectedUser, setSelectedUser] = useState(null);
   console.log("deceased",deceased);
   
+  // 고인 관리자 변경
   const handleSubmit = async () => {
     if (!selectedUser) {
       alert('신청할 사용자를 선택하세요.');

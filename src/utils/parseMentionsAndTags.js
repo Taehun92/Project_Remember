@@ -8,7 +8,7 @@ export function parseMentionsAndTags(text, mentions = []) {
     const tag = display || name;
     const [type, uid] = id.split(':');
 
-    // ⬇️ 이중 중괄호로 둘러싼 멘션 패턴 처리
+    // 이중 중괄호로 둘러싼 멘션 패턴 처리
     const regex = new RegExp(`@\\{\\{${tag}\\}\\}\\(\\{\\{${id}\\}\\}\\)`, 'g');
     const span = `<span class="mention-link" data-type="${type}" data-id="${uid}" data-tag="${tag}">@${tag}</span>`;
     result = result.replace(regex, span);

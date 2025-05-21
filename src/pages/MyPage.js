@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Container,
     Typography,
@@ -43,24 +43,20 @@ export default function MyPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        let cancelled = false;
         setLoading(true);
 
         (async () => {
             try {
                 // 1) 유저 정보
                 const resInfo = await fetch(`http://localhost:3005/user/info/${routeUserId}`);
-                console.log('/user/info ▶', resInfo.ok, await resInfo.clone().json());
                 setInfo((await resInfo.json()).info);
 
                 // 2) 관리하는 고인
                 const resDec = await fetch(`http://localhost:3005/user/deceased/${routeUserId}`);
-                console.log('/user/deceased ▶', resDec.ok, await resDec.clone().json());
                 setDeceasedList((await resDec.json()).list);
 
                 // 3) 내가 팔로우한 고인
                 const resFollow = await fetch(`http://localhost:3005/follow/${routeUserId}/following`);
-                console.log('/follow/.../following ▶', resFollow.ok, await resFollow.clone().json());
                 const { following = [] } = await resFollow.json();
                 const mapped = following.map(d => ({
                     USERID: d.DUSERID,
@@ -74,21 +70,18 @@ export default function MyPage() {
 
                 // 4) 타임라인
                 const resTime = await fetch(`http://localhost:3005/user/timeline/${routeUserId}`);
-                console.log('/user/timeline ▶', resTime.ok, await resTime.clone().json());
                 setTimelineList((await resTime.json()).list || []);
 
                 // 5) 뉴스피드 로그
                 const resNewsFeed = await fetch(`http://localhost:3005/newsfeed?userId=${routeUserId}`);
-                console.log('/newsfeed ▶', resNewsFeed.ok, await resNewsFeed.clone().json());
                 const newsFeedData = await resNewsFeed.json();
-                console.log('/newsfeed ▶', Array.isArray(newsFeedData), newsFeedData); // 이거 찍어보면 정확히 나와요
-                // 다음처럼 고치기
+
                 setNewsFeedLogs(Array.isArray(newsFeedData) ? newsFeedData : newsFeedData.data || newsFeedData.list || []);
 
             } catch (err) {
                 console.error('데이터 로드 실패:', err);
             } finally {
-                setLoading(false);  // 이 줄이 꼭 실행되어야 스피너가 멈춥니다.
+                setLoading(false);  // 스피너 멈추는 용도
             }
         })();
 
@@ -157,12 +150,6 @@ export default function MyPage() {
             console.error('피드 상세 조회 실패:', err);
         }
     };
-
-
-
-
-
-    console.log('✅ newsFeedLogs:', Array.isArray(newsFeedLogs), newsFeedLogs);
 
     return (
         <Container maxWidth="md">
