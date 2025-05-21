@@ -20,16 +20,16 @@ export default function ChatList({ rooms, myId, onSelectRoom, selectedRoom }) {
                 {rooms.map((room) => {
                     const partnerId = room.user1_id === myId ? room.user2_id : room.user1_id;
                     return (
-                        <React.Fragment key={room.roomno}>
+                        <React.Fragment key={room.ROOMNO}>
                             <ListItemButton
-                                selected={selectedRoom?.roomno === room.roomno ? true : false}
+                                selected={selectedRoom?.ROOMNO === room.ROOMNO ? true : false}
                                 onClick={() => onSelectRoom(room)}
                             >
                                 <ListItemAvatar>
-                                    <Avatar src={`http://localhost:3005${room.img_path}${room.img_name}`} />
+                                    <Avatar src={`http://localhost:3005${room.IMG_PATH}${room.IMG_NAME}`} />
                                 </ListItemAvatar>
                                 <ListItemText
-                                    primary={`${room.username} (${room.tagname})`}
+                                    primary={`${room.USERNAME} (${room.TAGNAME})`}
                                     secondary={room.lastMessage || '대화를 시작하세요'}
                                 />
                             </ListItemButton>
