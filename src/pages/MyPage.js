@@ -38,6 +38,7 @@ export default function MyPage() {
     const { userId: loginUserId } = jwtDecode(localStorage.getItem('token'));
     const { userId: routeParam } = useParams();
     const routeUserId = routeParam || loginUserId;
+    const cancelled = false;
 
     const [profile, setProfile] = useRecoilState(userProfileState);
     const navigate = useNavigate();
