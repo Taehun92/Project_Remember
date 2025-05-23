@@ -28,21 +28,21 @@ export default function FollowerList({ followers, onUserClick }) {
   const navigate = useNavigate();
 
   const renderItem = u => {
-    const imgUrl = u.IMG_PATH && u.IMG_NAME
-      ? `http://localhost:3005${u.IMG_PATH}${u.IMG_NAME}`
+    const imgUrl = u.img_path && u.img_name
+      ? `http://localhost:3005${u.img_path}${u.img_name}`
       : '/default-profile.png';
 
     return (
       <Paper
-        key={u.USERID}
+        key={u.userId}
         elevation={1}
         sx={itemStyle}
-        onClick={() => onUserClick ? onUserClick(u.USERID) : navigate(`/deceased/${u.USERID}`)}
+        onClick={() => onUserClick ? onUserClick(u.userId) : navigate(`/deceased/${u.userId}`)}
       >
         <Avatar src={imgUrl} sx={{ width: 56, height: 56, mx: 'auto' }} />
 
         {/* ✅ USERNAME 툴팁 처리 */}
-        <Tooltip title={u.USERNAME}>
+        <Tooltip title={u.username}>
           <Typography
             variant="subtitle2"
             noWrap
@@ -56,12 +56,12 @@ export default function FollowerList({ followers, onUserClick }) {
               maxWidth: '100%',
             }}
           >
-            {u.USERNAME}
+            {u.username}
           </Typography>
         </Tooltip>
 
         {/* ✅ TAGNAME 툴팁 유지 */}
-        <Tooltip title={u.TAGNAME}>
+        <Tooltip title={u.tagname}>
           <Typography
             variant="caption"
             color="text.secondary"
@@ -74,7 +74,7 @@ export default function FollowerList({ followers, onUserClick }) {
               textAlign: 'center'
             }}
           >
-            {u.TAGNAME}
+            {u.tagname}
           </Typography>
         </Tooltip>
       </Paper>

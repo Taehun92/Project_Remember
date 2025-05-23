@@ -7,16 +7,16 @@ function DeceasedProfileCard({ data, myUserId, onEdit, onRequestChange }) {
 
   if (!data) return null;
   const {
-    DUSERNAME, IMG_PATH, IMG_NAME,
-    DBIRTH, DEATH, REST_PLACE,
-    PRIMARY_USERID, AGENT_USERID, DUSERID, DTAGNAME
+    dusername, img_path, img_name,
+    dbirth, death, rest_place,
+    primary_userId, agent_userId, duserId, dtagname
   } = data;
 
-  const imgUrl = IMG_PATH && IMG_NAME
-    ? `http://localhost:3005${IMG_PATH}${IMG_NAME}`
+  const imgUrl = img_path && img_name
+    ? `http://localhost:3005${img_path}${img_name}`
     : '/default-deceased.png';
 
-  const isManager = (PRIMARY_USERID === myUserId || AGENT_USERID === myUserId);
+  const isManager = (primary_userId === myUserId || agent_userId === myUserId);
 
   return (
     <Paper
@@ -35,19 +35,19 @@ function DeceasedProfileCard({ data, myUserId, onEdit, onRequestChange }) {
       }}
     >
       {/* 프로필 이미지 */}
-      <Avatar src={imgUrl} alt={DUSERNAME} sx={{ width: 100, height: 100 }} />
+      <Avatar src={imgUrl} alt={dusername} sx={{ width: 100, height: 100 }} />
 
       {/* 고인 정보 */}
       <Box flex={1}>
         <Box display="flex" alignItems="center" gap={2}>
-          <Typography variant="h5" fontWeight="bold">{DUSERNAME}</Typography>
-          {REST_PLACE && (
+          <Typography variant="h5" fontWeight="bold">{dusername}</Typography>
+          {rest_place && (
             <Typography variant="body2" color="text.secondary">
-              (안식처: {REST_PLACE})
+              (안식처: {rest_place})
             </Typography>
           )}
         </Box>
-        <Typography variant="h8" fontWeight="semibold" color="text.secondary"  mb={1} >{DTAGNAME} {DBIRTH?.slice(0, 4)} ~ {DEATH?.slice(0, 4)}</Typography>
+        <Typography variant="h8" fontWeight="semibold" color="text.secondary" mb={1} >{dtagname} {dbirth?.slice(0, 4)} ~ {death?.slice(0, 4)}</Typography>
 
         {/* ✅ 고인 소개 */}
         <Typography
@@ -56,7 +56,7 @@ function DeceasedProfileCard({ data, myUserId, onEdit, onRequestChange }) {
           color="text.primary"
           sx={{ mt: 1, whiteSpace: 'pre-line' }}
         >
-          {data.CONTENTS?.trim() ? data.CONTENTS : '소개가 등록되지 않았습니다.'}
+          {data.contents?.trim() ? data.contents : '소개가 등록되지 않았습니다.'}
         </Typography>
       </Box>
 
@@ -81,7 +81,7 @@ function DeceasedProfileCard({ data, myUserId, onEdit, onRequestChange }) {
       {!isManager && (
         <FollowButton
           myUserId={myUserId}
-          targetUserId={DUSERID}
+          targetUserId={duserId}
           sx={{
             position: 'absolute',
             top: 16,

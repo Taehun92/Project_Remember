@@ -72,22 +72,22 @@ export default function Menu() {
           .filter(user => {
             const keyword = searchText.toLowerCase();
             const matches =
-              (user.TAGNAME || '').toLowerCase().includes(keyword) ||
-              (user.USERNAME || '').toLowerCase().includes(keyword) ||
-              (user.DUSERNAME || '').toLowerCase().includes(keyword);
-            return user.TYPE && matches;
+              (user.tagname || '').toLowerCase().includes(keyword) ||
+              (user.username || '').toLowerCase().includes(keyword) ||
+              (user.dusername || '').toLowerCase().includes(keyword);
+            return user.type && matches;
           })
           .map(user => {
-            const label = user.TAGNAME || user.USERNAME || user.DUSERNAME || '';
-            const name = user.USERNAME || user.DUSERNAME || '';
-            const type = user.TYPE === 'USER' ? 'USER' : 'DUSER';
+            const label = user.tagname || user.username || user.dusername || '';
+            const name = user.username || user.dusername || '';
+            const type = user.type === 'user' ? 'user' : 'duser';
 
             return {
-              id: `${type}:${user.ID}`,
+              id: `${type}:${user.id}`,
               display: label,
               username: name,
-              imgPath: user.IMG_PATH || '',
-              imgName: user.IMG_NAME || '',
+              imgPath: user.img_path || '',
+              imgName: user.img_name || '',
             };
           });
         setUserOptions(options);
@@ -110,8 +110,8 @@ export default function Menu() {
   };
 
   // avatar src 조합
-  const imgUrl = profile.IMG_PATH && profile.IMG_NAME
-    ? `http://localhost:3005${profile.IMG_PATH}${profile.IMG_NAME}`
+  const imgUrl = profile.img_path && profile.img_name
+    ? `http://localhost:3005${profile.img_path}${profile.img_name}`
     : undefined;
 
   return (
@@ -161,7 +161,7 @@ export default function Menu() {
           onChange={(_, value) => {
             if (value?.id) {
               const [type, uid] = value.id.split(':');
-              navigate(type === 'DUSER' ? `/deceased/${uid}` : `/mypage/${uid}`);
+              navigate(type === 'duser' ? `/deceased/${uid}` : `/mypage/${uid}`);
             }
           }}
           getOptionLabel={(option) =>

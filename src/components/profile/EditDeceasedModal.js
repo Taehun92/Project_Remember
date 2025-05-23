@@ -9,7 +9,7 @@ import { formatDateOnly } from '../../utils/formatData';
 export default function EditDeceasedModal({ open, onClose, deceasedData, onUpdated }) {
   const [form, setForm] = useState({ ...deceasedData });
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const isViewMode = Boolean(form.DUSERID);
+  const isViewMode = Boolean(form.duserId);
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function EditDeceasedModal({ open, onClose, deceasedData, onUpdat
     if (selectedFiles.length > 0) {
       const imgForm = new FormData();
       imgForm.append('image', selectedFiles[0]);
-      imgForm.append('id', form.DUSERID);
+      imgForm.append('id', form.duserId);
       try {
         const res = await fetch('http://localhost:3005/upload/deceased', {
           method: 'POST',
@@ -36,8 +36,8 @@ export default function EditDeceasedModal({ open, onClose, deceasedData, onUpdat
         });
         const data = await res.json();
         if (data.success) {
-          form.IMG_PATH = data.filepath;
-          form.IMG_NAME = data.filename;
+          form.img_path = data.filepath;
+          form.img_name = data.filename;
         } else {
           alert('이미지 업로드 실패: ' + data.message);
           return;
@@ -53,8 +53,8 @@ export default function EditDeceasedModal({ open, onClose, deceasedData, onUpdat
     try {
       const payload = {
         ...form,
-        DBIRTH: formatDateOnly(form.DBIRTH),
-        DEATH: formatDateOnly(form.DEATH),
+        DBIRTH: formatDateOnly(form.dbirth),
+        DEATH: formatDateOnly(form.death),
       };
       const res = await fetch('http://localhost:3005/deceased/update', {
         method: 'PUT',
@@ -64,9 +64,9 @@ export default function EditDeceasedModal({ open, onClose, deceasedData, onUpdat
       const result = await res.json();
       if (result.success) {
         alert('고인 정보가 수정되었습니다.');
-        onUpdated && onUpdated(form.DUSERID, {
-          IMG_PATH: form.IMG_PATH,
-          IMG_NAME: form.IMG_NAME
+        onUpdated && onUpdated(form.duserId, {
+          img_path: form.img_path,
+          img_name: form.img_name
         });
         onClose();
       } else {
@@ -84,7 +84,7 @@ export default function EditDeceasedModal({ open, onClose, deceasedData, onUpdat
       <DialogContent>
         <Box display="flex" flexDirection="column" alignItems="center" mt={2} mb={3}>
           <ImageUploader
-            currentImages={[`http://localhost:3005${form.IMG_PATH}${form.IMG_NAME}`]}
+            currentImages={[`http://localhost:3005${form.img_path}${form.img_name}`]}
             multiple={false}
             onFilesSelected={setSelectedFiles}
           />
@@ -96,8 +96,8 @@ export default function EditDeceasedModal({ open, onClose, deceasedData, onUpdat
             label="이름"
             fullWidth
             size="small"
-            value={form.DUSERNAME || ''}
-            onChange={e => handleChange('DUSERNAME', e.target.value)}
+            value={form.dusername || ''}
+            onChange={e => handleChange('dusername', e.target.value)}
             disabled={isViewMode}
           />
           <Box display="flex" gap={2}>
@@ -105,20 +105,20 @@ export default function EditDeceasedModal({ open, onClose, deceasedData, onUpdat
               label="생년월일"
               type="date"
               fullWidth size="small"
-              value={formatDateOnly(form.DBIRTH || '')}
+              value={formatDateOnly(form.dbirth || '')}
               InputLabelProps={{ shrink: true }}
               inputProps={{ max: today }}
-              onChange={e => handleChange('DBIRTH', e.target.value)}
+              onChange={e => handleChange('dbirth', e.target.value)}
               disabled={isViewMode}
             />
             <TextField
               label="사망일"
               type="date"
               fullWidth size="small"
-              value={formatDateOnly(form.DEATH || '')}
+              value={formatDateOnly(form.death || '')}
               InputLabelProps={{ shrink: true }}
               inputProps={{ max: today }}
-              onChange={e => handleChange('DEATH', e.target.value)}
+              onChange={e => handleChange('death', e.target.value)}
               disabled={isViewMode}
             />
           </Box>
@@ -127,8 +127,8 @@ export default function EditDeceasedModal({ open, onClose, deceasedData, onUpdat
               label="성별"
               select
               fullWidth size="small"
-              value={form.GENDER || ''}
-              onChange={e => handleChange('GENDER', e.target.value)}
+              value={form.gender || ''}
+              onChange={e => handleChange('gender', e.target.value)}
               InputLabelProps={{ shrink: true }}
               SelectProps={{ native: true }}
               disabled={isViewMode}
@@ -140,34 +140,34 @@ export default function EditDeceasedModal({ open, onClose, deceasedData, onUpdat
             <TextField
               label="관계"
               fullWidth size="small"
-              value={form.RELATION || ''}
-              onChange={e => handleChange('RELATION', e.target.value)}
+              value={form.relation || ''}
+              onChange={e => handleChange('relation', e.target.value)}
             />
           </Box>
           <TextField
             label="장지"
             fullWidth size="small"
-            value={form.REST_PLACE || ''}
-            onChange={e => handleChange('REST_PLACE', e.target.value)}
+            value={form.rest_place || ''}
+            onChange={e => handleChange('rest_place', e.target.value)}
           />
           <TextField
             label="고인 소개"
             fullWidth multiline rows={3} size="small"
-            value={form.CONTENTS || ''}
-            onChange={e => handleChange('CONTENTS', e.target.value)}
+            value={form.contents || ''}
+            onChange={e => handleChange('contents', e.target.value)}
           />
           <TextField
             label="외부 링크 (추모 영상 등)"
             fullWidth size="small"
-            value={form.LINKED_URL || ''}
-            onChange={e => handleChange('LINKED_URL', e.target.value)}
+            value={form.linked_url || ''}
+            onChange={e => handleChange('linked_url', e.target.value)}
           />
           <TextField
             label="공개 범위"
             select
             fullWidth size="small"
-            value={form.VISIBILITY || ''}
-            onChange={e => handleChange('VISIBILITY', e.target.value)}
+            value={form.visibility || ''}
+            onChange={e => handleChange('visibility', e.target.value)}
             InputLabelProps={{ shrink: true }}
             SelectProps={{ native: true }}
           >

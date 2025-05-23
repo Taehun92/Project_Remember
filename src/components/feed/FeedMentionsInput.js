@@ -3,11 +3,11 @@ import './mentions.css';
 
 export default function FeedMentionsInput({ text, onChange, users, minHeight = 450 }) {
     const userSuggestions = users.map(u => ({
-        id: `${u.TYPE}:${u.ID}`,
-        display: u.TAGNAME,
-        username: u.USERNAME,
-        filepath: u.IMG_PATH || '',
-        filename: u.IMG_NAME || ''
+        id: `${u.type}:${u.id}`,
+        display: u.tagname,
+        username: u.username,
+        filepath: u.img_path || '',
+        filename: u.img_name || ''
     }));
 
     return (

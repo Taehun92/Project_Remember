@@ -2,10 +2,10 @@ import { Box, Typography, Paper, Chip } from '@mui/material';
 import { ChatBubble, Notifications, AlternateEmail, Article } from '@mui/icons-material';
 
 const typeMap = {
-  FEED: { label: '피드', icon: <Article fontSize="small" />, color: 'primary' },
-  COMMENT: { label: '댓글', icon: <ChatBubble fontSize="small" />, color: 'success' },
-  MENTION: { label: '멘션', icon: <AlternateEmail fontSize="small" />, color: 'warning' },
-  SYSTEM: { label: '시스템', icon: <Notifications fontSize="small" />, color: 'error' },
+  feed: { label: '피드', icon: <Article fontSize="small" />, color: 'primary' },
+  comment: { label: '댓글', icon: <ChatBubble fontSize="small" />, color: 'success' },
+  mention: { label: '멘션', icon: <AlternateEmail fontSize="small" />, color: 'warning' },
+  system: { label: '시스템', icon: <Notifications fontSize="small" />, color: 'error' },
 };
 
 function TimelineList({ data = [] }) {

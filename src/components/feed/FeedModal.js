@@ -16,7 +16,7 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
   const [visibility, setVisibility] = useState('PUBLIC');
-  const MAX_FILES = 5;
+  const max_files = 5;
 
   // 토큰 - userId 받아오기
   const getUserIdFromToken = () => {
@@ -157,9 +157,9 @@ export default function FeedModal({ open, onClose, onSuccess, initialData = null
                 onFilesSelected={newFiles => {
                   const formatted = newFiles.map(f => ({ file: f })); // ✅ wrap
                   const combined = [...files, ...formatted];
-                  if (combined.length > MAX_FILES) {
-                    alert(`이미지는 최대 ${MAX_FILES}장까지 업로드 가능합니다.`);
-                    setFiles(combined.slice(0, MAX_FILES));
+                  if (combined.length > max_files) {
+                    alert(`이미지는 최대 ${max_files}장까지 업로드 가능합니다.`);
+                    setFiles(combined.slice(0, max_files));
                   } else {
                     setFiles(combined);
                   }

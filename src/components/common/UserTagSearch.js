@@ -30,18 +30,18 @@ function UserTagSearch({ value, onChange, label = "사용자 태그네임" }) {
     <Autocomplete
       freeSolo
       options={options}
-      getOptionLabel={(option) => option.TAGNAME}
+      getOptionLabel={(option) => option.tagname}
       value={value}
       onInputChange={(e, newInputValue) => setSearchText(newInputValue)}
       onChange={(e, newValue) => onChange(newValue)}
       renderOption={(props, option) => (
         <ListItem {...props}>
           <ListItemAvatar>
-            <Avatar src={`http://localhost:3005${option.IMG_PATH}${option.IMG_NAME}`}>
-              {option.USERNAME[0]}
+            <Avatar src={`http://localhost:3005${option.img_path}${option.img_name}`}>
+              {option.username[0]}
             </Avatar>
           </ListItemAvatar>
-          <ListItemText primary={option.TAGNAME} secondary={option.USERNAME} />
+          <ListItemText primary={option.tagname} secondary={option.username} />
         </ListItem>
       )}
       renderInput={(params) => (

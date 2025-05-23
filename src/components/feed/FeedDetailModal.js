@@ -258,15 +258,15 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
       .then(res => res.json())
       .then(data => {
         const filtered = (data.list || []).filter(user =>
-          user.TAGNAME.toLowerCase().includes(cleaned)
+          user.tagname.toLowerCase().includes(cleaned)
         ).map(user => {
-          const isUser = user.IMG_PATH?.includes('/profile/');
+          const isUser = user.img_path?.includes('/profile/');
           return {
             id: `${isUser ? 'USER' : 'DUSER'}:${user.ID}`,
-            display: user.TAGNAME,
-            username: user.USERNAME,
-            filepath: user.IMG_PATH || '',
-            filename: user.IMG_NAME || ''
+            display: user.tagname,
+            username: user.username,
+            filepath: user.img_path || '',
+            filename: user.img_name || ''
           };
         });
         callback(filtered);
