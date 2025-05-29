@@ -43,6 +43,7 @@ export default function MyPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        let cancelled = false;
         setLoading(true);
 
         (async () => {
@@ -57,13 +58,15 @@ export default function MyPage() {
 
                 // 3) 내가 팔로우한 고인
                 const resFollow = await fetch(`http://localhost:3005/follow/${routeUserId}/following`);
+                console.log('/follow/.../following ▶', resFollow.ok, await resFollow.clone().json());
                 const { following = [] } = await resFollow.json();
+                
                 const mapped = following.map(d => ({
-                    USERID: d.DUSERID,
-                    USERNAME: d.DUSERNAME,
-                    TAGNAME: d.TAGNAME || '',
-                    IMG_PATH: d.IMG_PATH,
-                    IMG_NAME: d.IMG_NAME
+                    userId: d.DUSERID,
+                    userName: d.DUSERNAME,
+                    tagName: d.TAGNAME || '',
+                    img_path: d.IMG_PATH,
+                    img_name: d.IMG_NAME
                 }));
 
                 setFollowedDeceased(mapped);

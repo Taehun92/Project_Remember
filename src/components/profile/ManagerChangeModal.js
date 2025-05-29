@@ -22,9 +22,9 @@ export default function ManagerChangeModal({ open, onClose, deceased, userId }) 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          duserId: deceased.DUSERID,
+          duserId: deceased.duserId,
           fromUserId: userId,
-          toUserId: selectedUser.USERID,
+          toUserId: selectedUser.userId,
         }),
       });
       const result = await res.json();
@@ -48,13 +48,13 @@ export default function ManagerChangeModal({ open, onClose, deceased, userId }) 
       <DialogContent>
         <Box display="flex" gap={2} alignItems="center" mb={2}>
           <Avatar
-            src={`http://localhost:3005${deceased.IMG_PATH}${deceased.IMG_NAME}`}
+            src={`http://localhost:3005${deceased.img_path}${deceased.img_name}`}
             sx={{ width: 80, height: 80 }}
           />
           <Box>
-            <Typography variant="h6">{deceased.DUSERNAME}</Typography>
+            <Typography variant="h6">{deceased.duserName}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {formatDateOnly(deceased.DBIRTH)} ~ {formatDateOnly(deceased.DEATH)}
+              {formatDateOnly(deceased.dbirth)} ~ {formatDateOnly(deceased.death)}
             </Typography>
           </Box>
         </Box>

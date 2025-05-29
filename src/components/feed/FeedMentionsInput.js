@@ -3,11 +3,11 @@ import './mentions.css';
 
 export default function FeedMentionsInput({ text, onChange, users, minHeight = 450 }) {
     const userSuggestions = users.map(u => ({
-        id: `${u.TYPE}:${u.ID}`,
-        display: u.TAGNAME,
-        username: u.USERNAME,
-        filepath: u.IMG_PATH || '',
-        filename: u.IMG_NAME || ''
+        id: `${u.type}:${u.id}`,
+        display: u.tagName,
+        userName: u.userName,
+        filepath: u.img_path || '',
+        filename: u.img_name || ''
     }));
 
     return (
@@ -80,7 +80,7 @@ export default function FeedMentionsInput({ text, onChange, users, minHeight = 4
                         />
                         <div style={{ lineHeight: 1.2 }}>
                             <div style={{ fontWeight: 'bold' }}>{entry.display}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#666' }}>{entry.username}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#666' }}>{entry.userName}</div>
                         </div>
                     </div>
                 )}

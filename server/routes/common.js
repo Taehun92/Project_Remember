@@ -5,13 +5,13 @@ const db = require('../db');
 
 // 태그 검색 기능
 router.get('/tags/search', async (req, res) => {
-  const tagname = req.query.tagname;
-  if (!tagname) return res.status(400).json({ message: 'tagname 파라미터 누락' });
+  const tagName = req.query.tagName;
+  if (!tagName) return res.status(400).json({ message: 'tagName 파라미터 누락' });
 
   try {
     const [rows] = await db.execute(
       `SELECT TAGNO, TAGNAME FROM TAG WHERE TAGNAME LIKE ? ORDER BY TAGNAME`,
-      [`%${tagname}%`]
+      [`%${tagName}%`]
     );
     res.json({ list: rows });
   } catch (err) {

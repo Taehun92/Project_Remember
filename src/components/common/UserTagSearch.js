@@ -11,7 +11,7 @@ function UserTagSearch({ value, onChange, label = "사용자 태그네임" }) {
     const fetchUsers = async () => {
       if (!searchText) return;
       try {
-        const res = await fetch(`http://localhost:3005/user/search-tag?tagname=${searchText}`);
+        const res = await fetch(`http://localhost:3005/user/search-tag?tagName=${searchText}`);
         const data = await res.json();
         setOptions(data.list || []);
       } catch (err) {
@@ -30,18 +30,18 @@ function UserTagSearch({ value, onChange, label = "사용자 태그네임" }) {
     <Autocomplete
       freeSolo
       options={options}
-      getOptionLabel={(option) => option.TAGNAME}
+      getOptionLabel={(option) => option.tagName}
       value={value}
       onInputChange={(e, newInputValue) => setSearchText(newInputValue)}
       onChange={(e, newValue) => onChange(newValue)}
       renderOption={(props, option) => (
         <ListItem {...props}>
           <ListItemAvatar>
-            <Avatar src={`http://localhost:3005${option.IMG_PATH}${option.IMG_NAME}`}>
-              {option.USERNAME[0]}
+            <Avatar src={`http://localhost:3005${option.img_path}${option.img_name}`}>
+              {option.userName[0]}
             </Avatar>
           </ListItemAvatar>
-          <ListItemText primary={option.TAGNAME} secondary={option.USERNAME} />
+          <ListItemText primary={option.tagName} secondary={option.userName} />
         </ListItem>
       )}
       renderInput={(params) => (

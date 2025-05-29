@@ -7,7 +7,7 @@ router.get('/list', async (req, res) => {
   const userId = parseInt(req.query.userId);
 
   const [rows] = await db.execute(`
-    SELECT r.*, u.username, u.tagname, ui.img_path, ui.img_name,
+    SELECT r.*, u.userName, u.tagName, ui.img_path, ui.img_name,
     (
         SELECT contents 
         FROM chat 

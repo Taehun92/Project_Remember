@@ -1,4 +1,3 @@
-// src/components/profile/MentionedFeedList.jsx
 import { Box, Typography, Paper, Chip } from '@mui/material';
 import { Article, Comment } from '@mui/icons-material';
 

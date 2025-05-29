@@ -187,7 +187,7 @@ const FeedCard = forwardRef(({ feed, onOpenDetail, commentCount, onLikeChange, h
                 <Box px={2} pb={2}>
                     <Divider sx={{ mb: 1 }} />
                     {(feed.comments || []).map((comment) => (
-                        <Box key={comment.COMMENTNO} mb={1}>
+                        <Box key={comment.commentno} mb={1}>
                             <Typography variant="body2">
                                 <strong>{comment.userName}</strong>: {comment.content}
                             </Typography>

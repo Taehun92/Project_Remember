@@ -156,7 +156,7 @@ router.get('/timeline/:userId', async (req, res) => {
 
 //유저 정보 수정
 router.put('/update', async (req, res) => {
-    const { userId, userName, tagname, email, email_verified, phone, phone_verified, birth, gender, addr } = req.body;
+    const { userId, userName, tagName, email, email_verified, phone, phone_verified, birth, gender, addr } = req.body;
 
     if (!userId) {
         return res.status(400).json({ success: false, message: 'userId는 필수입니다.' });
@@ -164,7 +164,7 @@ router.put('/update', async (req, res) => {
 
     try {
         const sql = "UPDATE USER SET  USERNAME = ?, TAGNAME = ?, EMAIL = ?, EMAIL_VERIFIED = ?, PHONE = ?, PHONE_VERIFIED = ?, BIRTH = ?, GENDER = ?, ADDR = ?, UPDATED_AT = NOW() WHERE USERID = ? ";
-        const values = [userName, tagname, email, email_verified, phone, phone_verified, birth, gender, addr, userId];
+        const values = [userName, tagName, email, email_verified, phone, phone_verified, birth, gender, addr, userId];
         await db.query(sql, values);
         return res.json({ success: true, message: '수정 완료' });
     } catch (err) {
@@ -176,10 +176,10 @@ router.put('/update', async (req, res) => {
 
 // 태그네임 검색
 router.get('/search-tag', async (req, res) => {
-    const { tagname } = req.query;
+    const { tagName } = req.query;
 
-    if (!tagname) {
-        return res.status(400).json({ success: false, message: 'tagname이 누락되었습니다.' });
+    if (!tagName) {
+        return res.status(400).json({ success: false, message: 'tagName이 누락되었습니다.' });
     }
 
     try {
@@ -191,7 +191,7 @@ router.get('/search-tag', async (req, res) => {
             LIMIT 10
         `;
 
-        const [rows] = await db.query(sql, [`%${tagname}%`]);
+        const [rows] = await db.query(sql, [`%${tagName}%`]);
         res.json({ success: true, list: rows });
     } catch (err) {
         console.error('❌ 태그네임 검색 오류:', err);

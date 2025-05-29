@@ -258,15 +258,15 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
       .then(res => res.json())
       .then(data => {
         const filtered = (data.list || []).filter(user =>
-          user.TAGNAME.toLowerCase().includes(cleaned)
+          user.tagName.toLowerCase().includes(cleaned)
         ).map(user => {
-          const isUser = user.IMG_PATH?.includes('/profile/');
+          const isUser = user.img_path?.includes('/profile/');
           return {
             id: `${isUser ? 'USER' : 'DUSER'}:${user.ID}`,
-            display: user.TAGNAME,
-            username: user.USERNAME,
-            filepath: user.IMG_PATH || '',
-            filename: user.IMG_NAME || ''
+            display: user.tagName,
+            userName: user.userName,
+            filepath: user.img_path || '',
+            filename: user.img_name || ''
           };
         });
         callback(filtered);
@@ -595,7 +595,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
                               />
                               <div style={{ lineHeight: 1.2 }}>
                                 <div style={{ fontWeight: 'bold' }}>{entry.display}</div>
-                                <div style={{ fontSize: '0.8rem', color: '#666' }}>{entry.username}</div>
+                                <div style={{ fontSize: '0.8rem', color: '#666' }}>{entry.userName}</div>
                               </div>
                             </div>
                           )}
@@ -664,7 +664,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
                               />
                               <div style={{ lineHeight: 1.2 }}>
                                 <div style={{ fontWeight: 'bold' }}>{entry.display}</div>
-                                <div style={{ fontSize: '0.8rem', color: '#666' }}>{entry.username}</div>
+                                <div style={{ fontSize: '0.8rem', color: '#666' }}>{entry.userName}</div>
                               </div>
                             </div>
                           )}
@@ -800,7 +800,7 @@ export default function FeedDetailModal({ open, onClose, feedInfo, imgList, onDe
                         />
                         <div style={{ lineHeight: 1.2 }}>
                           <div style={{ fontWeight: 'bold' }}>{entry.display}</div>
-                          <div style={{ fontSize: '0.8rem', color: '#666' }}>{entry.username}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#666' }}>{entry.userName}</div>
                         </div>
                       </div>
                     )}

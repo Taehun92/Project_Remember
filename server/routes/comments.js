@@ -279,7 +279,7 @@ router.get('/:feedNo', async (req, res) => {
                 parents: row.PARENT_COMMENTNO,
                 user: {
                     userId: row.USERID,
-                    tagname: row.TAGNAME,
+                    tagName: row.TAGNAME,
                     name: row.USERNAME,
                     img: row.IMG_PATH && row.IMG_NAME
                         ? `http://localhost:3005${row.IMG_PATH}${row.IMG_NAME}`

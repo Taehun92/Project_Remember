@@ -8,24 +8,24 @@ import ImageUploader from '../common/ImageUploader';
 export default function EditProfileModal({ open, onClose, userData, fetchUser, setUser, onUpdated }) {
     const [form, setForm] = useState({});
     const [errors, setErrors] = useState({ email: '', phone: '' });
-    const [tagnameLock, setTagnameLock] = useState(false);
-    const [tagnameCheck, setTagnameCheck] = useState({ valid: null, message: '' });
+    const [tagNameLock, setTagnameLock] = useState(false);
+    const [tagNameCheck, setTagnameCheck] = useState({ valid: null, message: '' });
     const [selectedFiles, setSelectedFiles] = useState([]);
 
     // 초기 폼 세팅
     useEffect(() => {
         if (userData) {
-            const birth = userData.BIRTH;
+            const birth = userData.birth;
             let date = '';
             if (birth instanceof Date) date = birth.toISOString().split('T')[0];
             else if (typeof birth === 'string' && birth.includes('T')) date = birth.split('T')[0];
             else date = birth || '';
 
-            const fullImg = (userData.IMG_PATH || '') + (userData.IMG_NAME || '');
+            const fullImg = (userData.img_path || '') + (userData.img_name || '');
             setForm({
                 ...userData,
-                TAGNAME: userData.TAGNAME?.replace(/^@/, ''),
-                BIRTH: date,
+                tagName: userData.tagName?.replace(/^@/, ''),
+                birth: date,
                 profileImg: fullImg       // <-- 경로+파일명 합쳐서 넣어줍니다
             });
             setErrors({ email: '', phone: '' });
@@ -37,7 +37,7 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
 
     // 태그네임 중복 확인
     const checkTagname = async () => {
-        const raw = form.TAGNAME?.replace(/^@/, '');
+        const raw = form.tagName?.replace(/^@/, '');
         if (!raw) {
             setTagnameCheck({ valid: false, message: '태그네임을 입력하세요.' });
             return false;
@@ -85,7 +85,7 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
             }
         }
         // 태그네임 검사
-        if (tagnameCheck.valid === false) {
+        if (tagNameCheck.valid === false) {
             alert('태그네임 중복 확인을 해주세요.');
             return;
         }
@@ -95,16 +95,16 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: form.USERID,
-                    userName: form.USERNAME,
-                    tagname: form.TAGNAME.startsWith('@') ? form.TAGNAME : '@' + form.TAGNAME,
-                    email: form.EMAIL,
-                    email_verified: form.EMAIL_VERIFIED,
-                    phone: form.PHONE,
-                    phone_verified: form.PHONE_VERIFIED,
-                    birth: form.BIRTH,
-                    gender: form.GENDER,
-                    addr: form.ADDR
+                    userId: form.userId,
+                    userName: form.userName,
+                    tagName: form.tagName.startsWith('@') ? form.tagName : '@' + form.tagName,
+                    email: form.email,
+                    email_verified: form.email_verified,
+                    phone: form.phone,
+                    phone_verified: form.phone_verified,
+                    birth: form.birth,
+                    gender: form.gender,
+                    addr: form.addr
                 })
             });
             const result = await res.json();
@@ -147,25 +147,25 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
                         label="태그네임"
                         fullWidth
                         size="small"
-                        value={form.TAGNAME || ''}
+                        value={form.tagName || ''}
                         onChange={async (e) => {
                             const v = e.target.value.replace(/^@/, '');
-                            setForm(prev => ({ ...prev, TAGNAME: v }));
+                            setForm(prev => ({ ...prev, tagName: v }));
                             setTagnameCheck({ valid: null, message: '' });
                             setTagnameLock(false);
                         }}
                         InputProps={{
                             startAdornment: <Typography sx={{ mr: 0.5, color: '#888' }}>@</Typography>,
-                            readOnly: tagnameLock,
+                            readOnly: tagNameLock,
                         }}
-                        error={tagnameCheck.valid === false}
-                        helperText={tagnameCheck.message}
+                        error={tagNameCheck.valid === false}
+                        helperText={tagNameCheck.message}
                     />
                     <Button
                         variant="outlined"
                         size="small"
                         onClick={async () => {
-                            if (tagnameLock) {
+                            if (tagNameLock) {
                                 setTagnameLock(false);
                                 setTagnameCheck({ valid: null, message: '' });
                             } else {
@@ -174,13 +174,13 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
                             }
                         }}
                     >
-                        {tagnameLock ? '수정' : '변경'}
+                        {tagNameLock ? '수정' : '변경'}
                     </Button>
                 </Box>
                 {/* 아이디/이름 */}
                 <Box display="flex" gap={2} mb={2}>
-                    <TextField label="아이디" fullWidth size="small" value={form.LOGIN_ID || ''} disabled />
-                    <TextField label="이름" fullWidth size="small" value={form.USERNAME || ''} disabled />
+                    <TextField label="아이디" fullWidth size="small" value={form.login_id || ''} disabled />
+                    <TextField label="이름" fullWidth size="small" value={form.userName || ''} disabled />
                 </Box>
                 {/* 이메일 */}
                 <Box display="flex" gap={1} mb={2}>
@@ -188,10 +188,10 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
                         label="이메일"
                         fullWidth
                         size="small"
-                        value={form.EMAIL || ''}
+                        value={form.email || ''}
                         onChange={(e) => {
                             const val = e.target.value;
-                            setForm(prev => ({ ...prev, EMAIL: val }));
+                            setForm(prev => ({ ...prev, email: val }));
                             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                             setErrors(prev => ({ ...prev, email: emailRegex.test(val) ? '' : '올바른 이메일 형식이 아닙니다.' }));
                         }}
@@ -199,11 +199,11 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
                         helperText={errors.email}
                     />
                     <Button
-                        variant={form.EMAIL_VERIFIED === 'Y' ? 'contained' : 'outlined'}
+                        variant={form.email_verified === 'Y' ? 'contained' : 'outlined'}
                         size="small"
                         sx={{ minWidth: 80 }}
                     >
-                        {form.EMAIL_VERIFIED === 'Y' ? '인증완료' : '인증'}
+                        {form.email_verified === 'Y' ? '인증완료' : '인증'}
                     </Button>
                 </Box>
                 {/* 연락처 */}
@@ -212,7 +212,7 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
                         label="연락처"
                         fullWidth
                         size="small"
-                        value={form.PHONE || ''}
+                        value={form.phone || ''}
                         onChange={(e) => {
                             let v = e.target.value.replace(/[^\d]/g, '');
                             if (v.length > 3 && v.length <= 7) v = v.slice(0, 3) + '-' + v.slice(3);
@@ -225,11 +225,11 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
                         helperText={errors.phone}
                     />
                     <Button
-                        variant={form.PHONE_VERIFIED === 'Y' ? 'contained' : 'outlined'}
+                        variant={form.phone_verified === 'Y' ? 'contained' : 'outlined'}
                         size="small"
                         sx={{ minWidth: 80 }}
                     >
-                        {form.PHONE_VERIFIED === 'Y' ? '인증완료' : '인증'}
+                        {form.phone_verified === 'Y' ? '인증완료' : '인증'}
                     </Button>
                 </Box>
                 {/* 생년월일/성별 */}
@@ -239,20 +239,20 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
                         type="date"
                         fullWidth
                         size="small"
-                        value={form.BIRTH || ''}
+                        value={form.birth || ''}
                         InputLabelProps={{ shrink: true }}
                         inputProps={{ max: new Date().toISOString().split('T')[0] }}
-                        onChange={(e) => setForm(prev => ({ ...prev, BIRTH: e.target.value }))}
+                        onChange={(e) => setForm(prev => ({ ...prev, birth: e.target.value }))}
                     />
                     <TextField
                         label="성별"
                         select
                         fullWidth
                         size="small"
-                        value={form.GENDER || ''}
+                        value={form.gender || ''}
                         InputLabelProps={{ shrink: true }}
                         SelectProps={{ native: true }}
-                        onChange={(e) => setForm(prev => ({ ...prev, GENDER: e.target.value }))}
+                        onChange={(e) => setForm(prev => ({ ...prev, gender: e.target.value }))}
                     >
                         <option value="">선택</option>
                         <option value="M">남성</option>
@@ -265,8 +265,8 @@ export default function EditProfileModal({ open, onClose, userData, fetchUser, s
                         label="주소"
                         fullWidth
                         size="small"
-                        value={form.ADDR || ''}
-                        onChange={(e) => setForm(prev => ({ ...prev, ADDR: e.target.value }))}
+                        value={form.addr || ''}
+                        onChange={(e) => setForm(prev => ({ ...prev, addr: e.target.value }))}
                     />
                 </Box>
             </DialogContent>

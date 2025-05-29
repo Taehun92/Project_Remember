@@ -64,33 +64,29 @@ export default function Menu() {
 
     console.log('🔍 검색 요청:', searchText); // ✅ 검색어 로그
 
-    fetch(`http://localhost:3005/user/search?tagname=${searchText}`)
+    fetch(`http://localhost:3005/user/search-tag?tagName=${searchText}`)
       .then(res => res.json())
       .then(data => {
-        console.log('📥 서버 응답:', data); // ✅ 응답 로그
-        const options = (data.list || [])
-          .filter(user => {
-            const keyword = searchText.toLowerCase();
-            const matches =
-              (user.TAGNAME || '').toLowerCase().includes(keyword) ||
-              (user.USERNAME || '').toLowerCase().includes(keyword) ||
-              (user.DUSERNAME || '').toLowerCase().includes(keyword);
-            return user.TYPE && matches;
-          })
-          .map(user => {
-            const label = user.TAGNAME || user.USERNAME || user.DUSERNAME || '';
-            const name = user.USERNAME || user.DUSERNAME || '';
-            const type = user.TYPE === 'USER' ? 'USER' : 'DUSER';
+        console.log('📥 서버 응답:', data);
+        const rawList = data.list || [];
+        console.log('📊 원본 리스트:', rawList);
 
-            return {
-              id: `${type}:${user.ID}`,
-              display: label,
-              username: name,
-              imgPath: user.IMG_PATH || '',
-              imgName: user.IMG_NAME || '',
-            };
-          });
-        setUserOptions(options);
+        const filtered = rawList.filter(user => {
+          const keyword = searchText.toLowerCase();
+          return (
+            (user.TAGNAME || '').toLowerCase().includes(keyword) ||
+            (user.USERNAME || '').toLowerCase().includes(keyword)
+          );
+        });
+
+        console.log('✅ 최종 필터링 결과:', filtered);
+        setUserOptions(filtered.map(user => ({
+          id: `${user.type || 'user'}:${user.id}`,
+          display: user.TAGNAME || user.USERNAME || user.DUSERNAME || '',
+          userName: user.USERNAME || user.DUSERNAME || '',
+          imgPath: user.IMG_PATH || '',
+          imgName: user.IMG_NAME || '',
+        })));
       })
       .catch(err => console.error('❌ 검색 실패:', err));
   }, [searchText]);
@@ -100,10 +96,13 @@ export default function Menu() {
     if (!userId) return;
     fetch(`http://localhost:3005/user/info/${userId}`)
       .then(res => res.json())
-      .then(data => setProfile(data.info))
+      .then(data => {
+        console.log('👤 사용자 정보 응답:', data.info); // ✅ 확인
+        setProfile(data.info)
+      })
+
       .catch(err => console.error('Menu fetch profile failed:', err));
   }, []);
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
@@ -161,7 +160,7 @@ export default function Menu() {
           onChange={(_, value) => {
             if (value?.id) {
               const [type, uid] = value.id.split(':');
-              navigate(type === 'DUSER' ? `/deceased/${uid}` : `/mypage/${uid}`);
+              navigate(type === 'duser' ? `/deceased/${uid}` : `/mypage/${uid}`);
             }
           }}
           getOptionLabel={(option) =>
@@ -185,7 +184,7 @@ export default function Menu() {
                     {option.display}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {option.username}
+                    {option.userName}
                   </Typography>
                 </Box>
               </Box>

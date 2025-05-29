@@ -19,7 +19,7 @@ export default function DmPage() {
                 .then((res) => res.json())
                 .then((room) => {
                     setSelectedRoom(room);
-                    if (!roomList.some(r => r.ROOMNO === room.ROOMNO)) {
+                    if (!roomList.some(r => r.roomno === room.roomno)) {
                         setRoomList((prev) => [...prev, room]);
                     }
                 })
