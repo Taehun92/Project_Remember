@@ -109,8 +109,8 @@ export default function Menu() {
   };
 
   // avatar src 조합
-  const imgUrl = profile.IMG_PATH && profile.IMG_NAME
-    ? `http://localhost:3005${profile.IMG_PATH}${profile.IMG_NAME}`
+  const imgUrl = profile.img_path && profile.img_name
+    ? `http://localhost:3005${profile.img_path}${profile.img_name}`
     : undefined;
 
   return (

@@ -38,6 +38,7 @@ export default function MyPage() {
     const { userId: loginUserId } = jwtDecode(localStorage.getItem('token'));
     const { userId: routeParam } = useParams();
     const routeUserId = routeParam || loginUserId;
+    const cancelled = false;
 
     const [profile, setProfile] = useRecoilState(userProfileState);
     const navigate = useNavigate();
@@ -96,12 +97,12 @@ export default function MyPage() {
         if (
             info !== null &&
             routeUserId === loginUserId &&
-            info.IMG_PATH != null &&
-            info.IMG_NAME != null
+            info.img_path != null &&
+            info.img_name != null
         ) {
             setProfile({
-                IMG_PATH: info.IMG_PATH,
-                IMG_NAME: info.IMG_NAME
+                img_path: info.img_path,
+                img_name: info.img_name
             });
         }
     }, [info, routeUserId, loginUserId, setProfile]);
@@ -125,7 +126,7 @@ export default function MyPage() {
     };
 
     // 프로필 이미지 URL
-    const imgUrl = info.IMG_PATH && info.IMG_NAME ? `http://localhost:3005${info.IMG_PATH}${info.IMG_NAME}` : '/default-profile.png';
+    const imgUrl = info.img_path && info.img_name ? `http://localhost:3005${info.img_path}${info.img_name}` : '/default-profile.png';
 
     // 타임라인 피드 클릭
     const handleFeedClick = async (feedId) => {
@@ -135,17 +136,17 @@ export default function MyPage() {
 
             setSelectedFeed({
                 feedId,
-                contents: data.info.CONTENTS,
+                contents: data.info.contents,
                 mentions: [], // 필요 시 서버에서 내려받기
                 tags: [], // 필요 시
                 images: data.info.images || [],
                 liked_by_me: data.info.liked_by_me,
                 likeCount: data.info.likeCount,
                 user: {
-                    userId: data.info.USERID,
-                    userName: data.info.USERNAME,
-                    userTagName: data.info.TAGNAME,
-                    profileImg: `http://localhost:3005${data.info.IMG_PATH}${data.info.IMG_NAME}`
+                    userId: data.info.userId,
+                    userName: data.info.userName,
+                    userTagName: data.info.tagName,
+                    profileImg: `http://localhost:3005${data.info.img_path}${data.info.img_name}`
                 }
             });
             setFeedModalOpen(true);
@@ -205,8 +206,8 @@ export default function MyPage() {
                             </Tooltip>
                         )}
                         <Avatar src={imgUrl} sx={{ width: 100, height: 100, mx: 'auto', mb: 1 }} />
-                        <Typography variant="h5">{info.USERNAME}</Typography>
-                        <Typography color="text.secondary">{info.TAGNAME}</Typography>
+                        <Typography variant="h5">{info.username}</Typography>
+                        <Typography color="text.secondary">{info.tagname}</Typography>
                     </Box>
 
                     {/* 관리하는 고인 */}
@@ -220,9 +221,9 @@ export default function MyPage() {
                     </Box>
                     <Grid container spacing={2}>
                         {deceasedList.map(d => (
-                            <Grid sx={{ xs: 12, sm: 6, md: 4 }} key={d.DUSERID}>
+                            <Grid sx={{ xs: 12, sm: 6, md: 4 }} key={d.duserId}>
                                 <Paper
-                                    onClick={() => navigate(`/deceased/${d.DUSERID}`)}
+                                    onClick={() => navigate(`/deceased/${d.duserId}`)}
                                     sx={{
                                         textAlign: 'center',
                                         p: 2,
@@ -232,15 +233,15 @@ export default function MyPage() {
                                 >
                                     <Avatar
                                         src={
-                                            d.IMG_PATH && d.IMG_NAME
-                                                ? `http://localhost:3005${d.IMG_PATH}${d.IMG_NAME}`
+                                            d.img_path && d.img_name
+                                                ? `http://localhost:3005${d.img_path}${d.img_name}`
                                                 : '/default-deceased.png'
                                         }
                                         sx={{ width: 80, height: 80, mx: 'auto', mb: 1 }}
                                     />
-                                    <Typography>{d.DUSERNAME}</Typography>
+                                    <Typography>{d.dusername}</Typography>
                                     <Typography variant="caption">
-                                        {formatYearOnly(d.DBIRTH)} ~ {formatYearOnly(d.DEATH)}
+                                        {formatYearOnly(d.dbirth)} ~ {formatYearOnly(d.death)}
                                     </Typography>
                                 </Paper>
                             </Grid>
@@ -298,8 +299,8 @@ export default function MyPage() {
                 fetchUser={fetchUser}
                 setUser={(updatedUser) => {
                     setProfile({
-                        IMG_PATH: updatedUser.IMG_PATH,
-                        IMG_NAME: updatedUser.IMG_NAME
+                        img_path: updatedUser.img_path,
+                        img_name: updatedUser.img_name
                     });
                     setInfo(updatedUser); // 화면 갱신을 위해 info도 갱신 ✅
                 }}
