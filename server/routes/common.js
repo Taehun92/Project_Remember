@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-
 // 태그 검색 기능
 router.get('/tags/search', async (req, res) => {
   const tagName = req.query.tagName;
@@ -10,7 +9,7 @@ router.get('/tags/search', async (req, res) => {
 
   try {
     const [rows] = await db.execute(
-      `SELECT TAGNO, TAGNAME FROM TAG WHERE TAGNAME LIKE ? ORDER BY TAGNAME`,
+      `select tagno, tagname from tag where tagname like ? order by tagname`,
       [`%${tagName}%`]
     );
     res.json({ list: rows });
@@ -50,71 +49,69 @@ router.get('/newsfeed', async (req, res) => {
       const logsB = await getMentionedFeedsWithContext(connection, duserId, page, pageSize);
       logs = [...logsA, ...logsB];
 
-      // 중복 제거 (같은 로그 ID나 SOURCE_ID + TYPE 조합 기준으로)
       const seen = new Set();
       logs = logs.filter(log => {
-        const key = `${log.SOURCE_ID}_${log.TYPE}`;
+        const key = `${log.source_id}_${log.type}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
       });
 
-      // 최신순 정렬
-      logs.sort((a, b) => new Date(b.CREATED_AT) - new Date(a.CREATED_AT));
+      logs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
 
     const result = [];
 
     for (const log of logs) {
       const actor = {
-        userId: log.ACTOR_ID,
-        tagName: log.TAGNAME,
-        userName: log.USERNAME,
-        profileImg: log.IMG_PATH
-          ? `http://localhost:3005${log.IMG_PATH}${log.IMG_NAME}`
+        userId: log.actor_id,
+        tagName: log.tagname,
+        userName: log.username,
+        profileImg: log.img_path
+          ? `http://localhost:3005${log.img_path}${log.img_name}`
           : '/default-profile.png'
       };
 
       let source = null;
 
-      if (log.SOURCE_TYPE === 'FEED') {
+      if (log.source_type === 'FEED') {
         const [rows] = await connection.execute(
-          `SELECT F.CONTENTS, I.IMG_PATH, I.IMG_NAME
-           FROM FEEDS F
-           LEFT JOIN FEEDSIMG I ON F.FEEDNO = I.FEEDNO
-           WHERE F.FEEDNO = ? AND F.DELETEYN = 'N'`,
-          [log.SOURCE_ID]
+          `select f.contents, i.img_path, i.img_name
+           from feeds f
+           left join feedsimg i on f.feedno = i.feedno
+           where f.feedno = ? and f.deleteyn = 'N'`,
+          [log.source_id]
         );
 
         if (rows.length === 0) continue;
 
         source = {
           type: 'FEED',
-          id: log.SOURCE_ID,
-          content: rows[0].CONTENTS,
+          id: log.source_id,
+          content: rows[0].contents,
           images: rows
-            .map(r => r.IMG_PATH ? `http://localhost:3005${r.IMG_PATH}${r.IMG_NAME}` : null)
+            .map(r => r.img_path ? `http://localhost:3005${r.img_path}${r.img_name}` : null)
             .filter(Boolean)
         };
-      } else if (log.SOURCE_TYPE === 'COMMENT') {
+      } else if (log.source_type === 'COMMENT') {
         const [rows] = await connection.execute(
-          `SELECT C.CONTENTS, C.FEEDNO FROM COMMENTS C WHERE C.COMMENTNO = ?`,
-          [log.SOURCE_ID]
+          `select c.contents, c.feedno from comments c where c.commentno = ?`,
+          [log.source_id]
         );
         if (rows.length === 0) continue;
 
         source = {
           type: 'COMMENT',
-          id: log.SOURCE_ID,
-          content: rows[0].CONTENTS,
-          feedId: rows[0].FEEDNO
+          id: log.source_id,
+          content: rows[0].contents,
+          feedId: rows[0].feedno
         };
       }
 
       result.push({
-        logId: log.LOG_ID,
-        summary: log.SUMMARY,
-        createdAt: log.CREATED_AT,
+        logId: log.log_id,
+        summary: log.summary,
+        createdAt: log.created_at,
         actor,
         source
       });
@@ -128,6 +125,5 @@ router.get('/newsfeed', async (req, res) => {
     connection.release();
   }
 });
-
 
 module.exports = router;

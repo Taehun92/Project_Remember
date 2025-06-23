@@ -4,18 +4,16 @@ const db = require('../db'); // mysql2 pool
 
 /**
  * GET /follow/:userNo/is-following
- * → userNo(USERID) 가 targetNo(DUSERID) 를 팔로잉 중인지 확인
- * query: ?targetNo=<duserId>
+ * → userNo(userid)가 targetNo(duserid)를 팔로잉 중인지 확인
  */
 router.get('/:userNo/is-following', async (req, res) => {
-  const followerNo = Number(req.params.userNo);           // USERID
-  const deceasedNo = Number(req.query.targetNo);           // DUSERID
+  const followerNo = Number(req.params.userNo);
+  const deceasedNo = Number(req.query.targetNo);
   try {
     const [rows] = await db.query(
-      `SELECT 1 
-         FROM FOLLOW 
-        WHERE FOLLOWERNO = ? 
-          AND FOLLOWEDNO = ?`,
+      `select 1 
+       from follow 
+       where followerno = ? and followedno = ?`,
       [followerNo, deceasedNo]
     );
     res.json({ isFollowing: rows.length > 0 });
@@ -35,34 +33,32 @@ router.post('/:deceasedNo', async (req, res) => {
   }
 
   try {
-    // 중복 확인
     const [exists] = await db.query(
-      `SELECT 1 FROM FOLLOW WHERE FOLLOWERNO = ? AND FOLLOWEDNO = ?`,
+      `select 1 from follow where followerno = ? and followedno = ?`,
       [followerNo, deceasedNo]
     );
     if (exists.length > 0) {
       return res.status(409).json({ success: false, message: '이미 팔로우한 대상입니다.' });
     }
 
-    // FOLLOW 테이블에 추가
     await db.query(
-      `INSERT INTO FOLLOW (FOLLOWERNO, FOLLOWEDNO) VALUES (?, ?)`,
+      `insert into follow (followerno, followedno) values (?, ?)`,
       [followerNo, deceasedNo]
     );
 
-    // USER_LOG 테이블에 기록 추가
     await db.query(
-      `INSERT INTO USER_LOG (ACTOR_ID, TARGET_ID, TARGET_TYPE, SOURCE_ID, SOURCE_TYPE, TYPE, SUMMARY, ISREAD)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `insert into user_log 
+       (actor_id, target_id, target_type, source_id, source_type, type, summary, isread)
+       values (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        followerNo,           // ACTOR_ID
-        deceasedNo,           // TARGET_ID
-        'DUSER',              // TARGET_TYPE
+        followerNo,
         deceasedNo,
-        'FOLLOW',
-        'FOLLOW',             // TYPE
-        '고인을 기억합니다.', // SUMMARY
-        'N'                   // ISREAD
+        'duser',
+        deceasedNo,
+        'follow',
+        'follow',
+        '고인을 기억합니다.',
+        'N'
       ]
     );
 
@@ -84,18 +80,17 @@ router.delete('/:deceasedNo', async (req, res) => {
 
   try {
     const [result] = await db.query(
-      `DELETE FROM FOLLOW WHERE FOLLOWERNO = ? AND FOLLOWEDNO = ?`,
+      `delete from follow where followerno = ? and followedno = ?`,
       [followerNo, deceasedNo]
     );
 
-    // FOLLOW 테이블에서 삭제가 되었을 때만 로그 삭제
     if (result.affectedRows > 0) {
       await db.query(
-        `DELETE FROM USER_LOG 
-         WHERE ACTOR_ID = ? 
-           AND TARGET_ID = ? 
-           AND TARGET_TYPE = 'DUSER' 
-           AND TYPE = 'FOLLOW'`,
+        `delete from user_log 
+         where actor_id = ? 
+           and target_id = ? 
+           and target_type = 'duser' 
+           and type = 'follow'`,
         [followerNo, deceasedNo]
       );
     }
@@ -107,26 +102,25 @@ router.delete('/:deceasedNo', async (req, res) => {
   }
 });
 
-
 /**
  * GET /follow/:deceasedNo/followers
- * → deceasedNo(DUSERID) 를 팔로잉 중인 USER 목록 (고인 팔로워)
+ * → deceasedNo(duserid)를 팔로잉 중인 user 목록
  */
 router.get('/:deceasedNo/followers', async (req, res) => {
   const deceasedNo = Number(req.params.deceasedNo);
   try {
     const [rows] = await db.query(
-      `SELECT 
-         U.USERID, 
-         U.USERNAME, 
-         U.TAGNAME, 
-         UI.IMG_PATH, 
-         UI.IMG_NAME,
-         F.CREATED_AT
-       FROM FOLLOW F
-       JOIN USER U       ON F.FOLLOWERNO = U.USERID
-       LEFT JOIN USERIMG UI ON UI.USERID   = U.USERID
-       WHERE F.FOLLOWEDNO = ?`,
+      `select 
+         u.userid, 
+         u.username, 
+         u.tagname, 
+         ui.img_path, 
+         ui.img_name,
+         f.created_at
+       from follow f
+       join user u on f.followerno = u.userid
+       left join userimg ui on ui.userid = u.userid
+       where f.followedno = ?`,
       [deceasedNo]
     );
     res.json({ followers: rows });
@@ -138,24 +132,24 @@ router.get('/:deceasedNo/followers', async (req, res) => {
 
 /**
  * GET /follow/:userNo/following
- * → userNo(USERID) 가 팔로우 중인 DUSER 목록 (내가 팔로우한 고인 리스트)
+ * → userNo(userid)가 팔로우 중인 duser 목록
  */
 router.get('/:userNo/following', async (req, res) => {
   const userNo = Number(req.params.userNo);
   try {
     const [rows] = await db.query(
-      `SELECT 
-         D.DUSERID, 
-         D.DUSERNAME, 
-         D.RELATION, 
-         D.DBIRTH, 
-         D.DEATH, 
-         DI.IMG_PATH, 
-         DI.IMG_NAME
-       FROM FOLLOW F
-       JOIN DUSER D       ON F.FOLLOWEDNO = D.DUSERID
-       LEFT JOIN DUSERIMG DI ON DI.DUSERID   = D.DUSERID
-       WHERE F.FOLLOWERNO = ?`,
+      `select 
+         d.duserid, 
+         d.dusername, 
+         d.relation, 
+         d.dbirth, 
+         d.death, 
+         di.img_path, 
+         di.img_name
+       from follow f
+       join duser d on f.followedno = d.duserid
+       left join duserimg di on di.duserid = d.duserid
+       where f.followerno = ?`,
       [userNo]
     );
     res.json({ following: rows });

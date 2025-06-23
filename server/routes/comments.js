@@ -14,27 +14,27 @@ router.post('/:feedNo', async (req, res) => {
     console.log('userId:', userId);
     console.log('contents:', contents);
     console.log('parentCommentNo:', parentCommentNo);
-    console.log('mentions:', mentions); // ✅ 멘션 확인
+    console.log('mentions:', mentions);
 
     try {
         await connection.beginTransaction();
 
         // 1. 댓글 저장
         const [result] = await connection.execute(`
-            INSERT INTO COMMENTS (FEEDNO, USERID, CONTENTS, PARENT_COMMENTNO, DELETEYN, CREATED_AT, UPDATED_AT)
-            VALUES (?, ?, ?, ?, 'N', NOW(), NOW())
+            insert into comments (feedno, userid, contents, parent_commentno, deleteyn, created_at, updated_at)
+            values (?, ?, ?, ?, 'N', now(), now())
         `, [feedNo, userId, contents, parentCommentNo]);
 
         const commentNo = result.insertId;
 
-        // 2. 피드 활동 기록 - 댓글 등록
+        // 2. 피드 활동 기록
         await connection.execute(`
-        INSERT INTO USER_LOG 
-        (FEEDNO, ACTOR_ID, TARGET_TYPE, TYPE, SOURCE_ID, SOURCE_TYPE, SUMMARY, ISREAD, CREATED_AT)
-        VALUES (?, ?, 'USER', 'COMMENT', ?, 'COMMENT', ?, 'N', NOW())
+            insert into user_log 
+            (feedno, actor_id, target_type, type, source_id, source_type, summary, isread, created_at)
+            values (?, ?, 'USER', 'COMMENT', ?, 'COMMENT', ?, 'N', now())
         `, [feedNo, userId, commentNo, '새로운 댓글이 등록되었습니다']);
 
-        // 3. 멘션 저장 + 활동 기록
+        // 3. 멘션 저장
         for (const rawId of mentions) {
             let mentionedNo, type;
 
@@ -43,7 +43,7 @@ router.post('/:feedNo', async (req, res) => {
             } else if (typeof rawId === 'object' && rawId.id && rawId.id.includes(':')) {
                 [type, mentionedNo] = rawId.id.split(':');
             } else {
-                continue; // 잘못된 형식이면 skip
+                continue;
             }
 
             const isDuser = type === 'DUSER';
@@ -52,14 +52,14 @@ router.post('/:feedNo', async (req, res) => {
                 : '언급되었습니다.';
 
             await connection.execute(`
-                 INSERT INTO CMENTIONS (COMMENTNO, MENTIONERNO, MENTIONEDNO, MENTIONEDTYPE, CREATED_AT)
-                 VALUES (?, ?, ?, ?, NOW())
-                `, [commentNo, userId, mentionedNo, type]);
+                insert into cmentions (commentno, mentionerno, mentionedno, mentionedtype, created_at)
+                values (?, ?, ?, ?, now())
+            `, [commentNo, userId, mentionedNo, type]);
 
             await connection.execute(`
-             INSERT INTO USER_LOG 
-             (FEEDNO, ACTOR_ID, TARGET_ID, TARGET_TYPE, TYPE, SOURCE_ID, SOURCE_TYPE, SUMMARY, ISREAD, CREATED_AT)
-             VALUES (?, ?, ?, ?, 'MENTION', ?, 'COMMENT', ?, 'N', NOW())
+                insert into user_log 
+                (feedno, actor_id, target_id, target_type, type, source_id, source_type, summary, isread, created_at)
+                values (?, ?, ?, ?, 'MENTION', ?, 'COMMENT', ?, 'N', now())
             `, [
                 feedNo,
                 userId,
@@ -82,7 +82,6 @@ router.post('/:feedNo', async (req, res) => {
     }
 });
 
-
 // 댓글 수정
 router.put('/:commentNo', async (req, res) => {
     const commentNo = parseInt(req.params.commentNo, 10);
@@ -93,30 +92,27 @@ router.put('/:commentNo', async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        // 1. 댓글 수정
         const [updateResult] = await connection.execute(`
-            UPDATE COMMENTS
-            SET CONTENTS = ?, UPDATED_AT = NOW()
-            WHERE COMMENTNO = ? AND USERID = ? AND DELETEYN = 'N'
+            update comments
+            set contents = ?, updated_at = now()
+            where commentno = ? and userid = ? and deleteyn = 'N'
         `, [contents, commentNo, userId]);
 
         if (updateResult.affectedRows === 0) {
             throw new Error('댓글이 없거나 권한이 없습니다.');
         }
 
-        // 2. 기존 멘션 목록 조회
         const [oldMentions] = await connection.execute(`
-            SELECT MENTIONEDNO FROM CMENTIONS
-            WHERE COMMENTNO = ?
+            select mentionedno from cmentions
+            where commentno = ?
         `, [commentNo]);
 
-        const oldMentionSet = new Set(oldMentions.map(m => m.MENTIONEDNO));
+        const oldMentionSet = new Set(oldMentions.map(m => m.mentionedno));
         const newMentionSet = new Set(mentions);
 
         const added = [...newMentionSet].filter(uid => !oldMentionSet.has(uid));
         const removed = [...oldMentionSet].filter(uid => !newMentionSet.has(uid));
 
-        // 3. 추가된 멘션 → INSERT
         for (const rawId of added) {
             if (typeof rawId !== 'string' || !rawId.includes(':')) continue;
 
@@ -127,14 +123,14 @@ router.put('/:commentNo', async (req, res) => {
                 : '언급되었습니다.';
 
             await connection.execute(`
-                INSERT INTO CMENTIONS (COMMENTNO, MENTIONERNO, MENTIONEDNO, MENTIONEDTYPE, CREATED_AT)
-                VALUES (?, ?, ?, ?, NOW())
+                insert into cmentions (commentno, mentionerno, mentionedno, mentionedtype, created_at)
+                values (?, ?, ?, ?, now())
             `, [commentNo, userId, mentionedNo, type]);
 
             await connection.execute(`
-            INSERT INTO USER_LOG 
-            (FEEDNO, ACTOR_ID, TARGET_ID, TARGET_TYPE, TYPE, SOURCE_ID, SOURCE_TYPE, SUMMARY, ISREAD, CREATED_AT)
-             VALUES (?, ?, ?, ?, 'MENTION', ?, 'COMMENT', ?, 'N', NOW())
+                insert into user_log 
+                (feedno, actor_id, target_id, target_type, type, source_id, source_type, summary, isread, created_at)
+                values (?, ?, ?, ?, 'MENTION', ?, 'COMMENT', ?, 'N', now())
             `, [
                 feedNo,
                 userId,
@@ -145,20 +141,18 @@ router.put('/:commentNo', async (req, res) => {
             ]);
         }
 
-
-        // 4. 삭제된 멘션 → DELETE
         for (const mentionedNo of removed) {
             await connection.execute(`
-                DELETE FROM CMENTIONS
-                WHERE COMMENTNO = ? AND MENTIONEDNO = ?
+                delete from cmentions
+                where commentno = ? and mentionedno = ?
             `, [commentNo, mentionedNo]);
 
             await connection.execute(`
-            DELETE FROM USER_LOG
-            WHERE TYPE = 'MENTION'
-            AND SOURCE_TYPE = 'COMMENT'
-            AND SOURCE_ID = ?
-            AND TARGET_ID = ?
+                delete from user_log
+                where type = 'MENTION'
+                and source_type = 'COMMENT'
+                and source_id = ?
+                and target_id = ?
             `, [commentNo, mentionedNo]);
         }
 
@@ -174,7 +168,6 @@ router.put('/:commentNo', async (req, res) => {
     }
 });
 
-
 // 댓글 삭제
 router.delete('/:commentNo', async (req, res) => {
     const commentNo = parseInt(req.params.commentNo, 10);
@@ -183,43 +176,37 @@ router.delete('/:commentNo', async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        // 1. 대댓글 목록 조회
         const [childComments] = await connection.execute(`
-            SELECT COMMENTNO FROM COMMENTS
-            WHERE PARENT_COMMENTNO = ?
+            select commentno from comments
+            where parent_commentno = ?
         `, [commentNo]);
 
-        const childCommentNos = childComments.map(row => row.COMMENTNO);
-
-        // 2. 멘션 삭제 (자식 포함)
+        const childCommentNos = childComments.map(row => row.commentno);
         const allCommentNos = [commentNo, ...childCommentNos];
 
         if (allCommentNos.length > 0) {
             await connection.query(`
-                DELETE FROM CMENTIONS
-                WHERE COMMENTNO IN (${allCommentNos.map(() => '?').join(',')})
+                delete from cmentions
+                where commentno in (${allCommentNos.map(() => '?').join(',')})
             `, allCommentNos);
 
-            // 3. USERLOG 삭제
             await connection.query(`
-                DELETE FROM USER_LOG
-                WHERE SOURCE_ID IN (${allCommentNos.map(() => '?').join(',')})
-                AND SOURCE_TYPE = 'COMMENT'
+                delete from user_log
+                where source_id in (${allCommentNos.map(() => '?').join(',')})
+                and source_type = 'COMMENT'
             `, allCommentNos);
         }
 
-        // 4. 자식 댓글 삭제
         if (childCommentNos.length > 0) {
             await connection.query(`
-                DELETE FROM COMMENTS
-                WHERE COMMENTNO IN (${childCommentNos.map(() => '?').join(',')})
+                delete from comments
+                where commentno in (${childCommentNos.map(() => '?').join(',')})
             `, childCommentNos);
         }
 
-        // 5. 원본 댓글 삭제
         await connection.execute(`
-            DELETE FROM COMMENTS
-            WHERE COMMENTNO = ?
+            delete from comments
+            where commentno = ?
         `, [commentNo]);
 
         await connection.commit();
@@ -234,67 +221,65 @@ router.delete('/:commentNo', async (req, res) => {
     }
 });
 
-// 댓글 전체 조회 (including count)
+// 댓글 전체 조회
 router.get('/:feedNo', async (req, res) => {
     const feedNo = parseInt(req.params.feedNo, 10);
     console.log("댓글 조회 feedNo", feedNo);
 
     try {
-        // 전체 댓글 수 조회
         const [[{ totalCount }]] = await db.query(
-            `SELECT COUNT(*) AS totalCount FROM COMMENTS WHERE FEEDNO = ?`,
+            `select count(*) as totalCount from comments where feedno = ?`,
             [feedNo]
         );
 
-        // 댓글 목록 조회
         const [rows] = await db.query(`
-      SELECT 
-        C.COMMENTNO,
-        C.FEEDNO,
-        C.USERID,
-        C.CONTENTS,
-        C.PARENT_COMMENTNO,
-        C.CREATED_AT,
-        C.DELETEYN,
-        U.TAGNAME,
-        U.USERNAME,
-        U.USERID,
-        UI.IMG_PATH,
-        UI.IMG_NAME
-      FROM COMMENTS C
-      JOIN USER U ON C.USERID = U.USERID
-      JOIN USERIMG UI ON U.USERID = UI.USERID
-      WHERE C.FEEDNO = ?
-      ORDER BY C.CREATED_AT ASC
-    `, [feedNo]);
+            select 
+                c.commentno,
+                c.feedno,
+                c.userid,
+                c.contents,
+                c.parent_commentno,
+                c.created_at,
+                c.deleteyn,
+                u.tagname,
+                u.username,
+                u.userid,
+                ui.img_path,
+                ui.img_name
+            from comments c
+            join user u on c.userid = u.userid
+            join userimg ui on u.userid = ui.userid
+            where c.feedno = ?
+            order by c.created_at asc
+        `, [feedNo]);
 
         const parents = [];
         const childrenMap = {};
 
         for (const row of rows) {
             const comment = {
-                commentNo: row.COMMENTNO,
-                contents: row.DELETEYN === 'Y' ? '삭제된 댓글입니다.' : row.CONTENTS,
-                createdAt: row.CREATED_AT,
-                parents: row.PARENT_COMMENTNO,
+                commentNo: row.commentno,
+                contents: row.deleteyn === 'Y' ? '삭제된 댓글입니다.' : row.contents,
+                createdAt: row.created_at,
+                parents: row.parent_commentno,
                 user: {
-                    userId: row.USERID,
-                    tagName: row.TAGNAME,
-                    name: row.USERNAME,
-                    img: row.IMG_PATH && row.IMG_NAME
-                        ? `http://localhost:3005${row.IMG_PATH}${row.IMG_NAME}`
+                    userId: row.userid,
+                    tagName: row.tagname,
+                    name: row.username,
+                    img: row.img_path && row.img_name
+                        ? `http://localhost:3005${row.img_path}${row.img_name}`
                         : '/default-profile.png'
                 },
                 children: []
             };
 
-            if (row.PARENT_COMMENTNO === null) {
+            if (row.parent_commentno === null) {
                 parents.push(comment);
             } else {
-                if (!childrenMap[row.PARENT_COMMENTNO]) {
-                    childrenMap[row.PARENT_COMMENTNO] = [];
+                if (!childrenMap[row.parent_commentno]) {
+                    childrenMap[row.parent_commentno] = [];
                 }
-                childrenMap[row.PARENT_COMMENTNO].push(comment);
+                childrenMap[row.parent_commentno].push(comment);
             }
         }
 

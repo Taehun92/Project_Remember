@@ -7,7 +7,7 @@ router.get('/list', async (req, res) => {
   const userId = parseInt(req.query.userId);
 
   const [rows] = await db.execute(`
-    SELECT r.*, u.userName, u.tagName, ui.img_path, ui.img_name,
+    SELECT r.*, u.username, u.tagname, ui.img_path, ui.img_name,
     (
         SELECT contents 
         FROM chat 
@@ -15,13 +15,13 @@ router.get('/list', async (req, res) => {
         ORDER BY sent_at DESC 
         LIMIT 1
     ) AS lastMessage
-      FROM chatroom r
-      JOIN user u 
-          ON u.userid = IF(r.user1_id = ?, r.user2_id, r.user1_id)
-      LEFT JOIN userimg ui 
-          ON ui.userid = u.userid
-      WHERE r.user1_id = ? OR r.user2_id = ?
-    `, [userId, userId, userId]);
+    FROM chatroom r
+    JOIN user u 
+        ON u.userid = IF(r.user1_id = ?, r.user2_id, r.user1_id)
+    LEFT JOIN userimg ui 
+        ON ui.userid = u.userid
+    WHERE r.user1_id = ? OR r.user2_id = ?
+  `, [userId, userId, userId]);
 
   res.json({ rooms: rows });
 });
@@ -35,7 +35,6 @@ router.get('/createOrGetRoom', async (req, res) => {
   const userMin = Math.min(user1, user2);
   const userMax = Math.max(user1, user2);
 
-  // 기존 방 조회
   const [exists] = await db.execute(`
     SELECT * FROM chatroom 
     WHERE user_min_id = ? AND user_max_id = ?
@@ -45,7 +44,6 @@ router.get('/createOrGetRoom', async (req, res) => {
     return res.json(exists[0]);
   }
 
-  // 새 방 만들기 (생성 컬럼은 넣지 않음)
   await db.execute(`
     INSERT INTO chatroom (user1_id, user2_id)
     VALUES (?, ?)
@@ -74,7 +72,7 @@ router.get('/history', async (req, res) => {
 });
 
 
-// 메세지 전송
+// 메시지 전송
 router.post('/send', async (req, res) => {
   try {
     const { roomno, sender_id, contents } = req.body;
@@ -87,12 +85,8 @@ router.post('/send', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('🔥 DM 전송 실패:', err);
-    res.status(500).json({ error: '메시지 전송 실패' }); // ✅ JSON 에러 응답 보장
+    res.status(500).json({ error: '메시지 전송 실패' });
   }
 });
-
-
-
-
 
 module.exports = router;

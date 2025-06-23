@@ -74,18 +74,18 @@ export default function Menu() {
         const filtered = rawList.filter(user => {
           const keyword = searchText.toLowerCase();
           return (
-            (user.TAGNAME || '').toLowerCase().includes(keyword) ||
-            (user.USERNAME || '').toLowerCase().includes(keyword)
+            (user.tagName || '').toLowerCase().includes(keyword) ||
+            (user.userName || '').toLowerCase().includes(keyword)
           );
         });
 
         console.log('✅ 최종 필터링 결과:', filtered);
         setUserOptions(filtered.map(user => ({
           id: `${user.type || 'user'}:${user.id}`,
-          display: user.TAGNAME || user.USERNAME || user.DUSERNAME || '',
-          userName: user.USERNAME || user.DUSERNAME || '',
-          imgPath: user.IMG_PATH || '',
-          imgName: user.IMG_NAME || '',
+          display: user.tagName || user.userName || user.duserName || '',
+          userName: user.userName || user.duserName || '',
+          imgPath: user.img_path || '',
+          imgName: user.img_name || '',
         })));
       })
       .catch(err => console.error('❌ 검색 실패:', err));

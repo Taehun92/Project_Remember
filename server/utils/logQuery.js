@@ -1,113 +1,100 @@
-async function getRelevantUserLogs(connection, userId, page = 1, pageSize = 10) {
-  const offset = (page - 1) * pageSize;
+async function get_relevant_user_logs(connection, user_id, page = 1, page_size = 10) {
+  const offset = (page - 1) * page_size;
 
-  // 1. 관리 중인 고인
   const [managed] = await connection.execute(`
-    SELECT DUSERID FROM DUSER
-    WHERE PRIMARY_USERID = ? OR AGENT_USERID = ?
-  `, [userId, userId]);
+    SELECT duserid FROM duser
+    WHERE primary_userid = ? OR agent_userid = ?
+  `, [user_id, user_id]);
 
-  const managedIds = managed.map(row => row.DUSER_ID);
+  const managed_ids = managed.map(row => row.duserid);
 
-  // 2. 팔로우 중인 고인
   const [followed] = await connection.execute(`
-    SELECT FOLLOWEDNO FROM FOLLOW
-    WHERE FOLLOWERNO = ?
-  `, [userId]);
+    SELECT followedno FROM follow
+    WHERE followerno = ?
+  `, [user_id]);
 
-  const followedIds = followed.map(row => row.FOLLOWED_NO);
+  const followed_ids = followed.map(row => row.followedno);
 
-  // 3. 유효한 고인 ID 목록
-  const allDuserIds = [...new Set([...managedIds, ...followedIds])];
-  const placeholders = allDuserIds.map(() => '?').join(',');
+  const all_duser_ids = [...new Set([...managed_ids, ...followed_ids])];
+  if (all_duser_ids.length === 0) return [];
 
-  // 4. 로그 가져오기
-  if (followedIds.length === 0) {
-    // 빈 리스트일 경우 쿼리 자체를 다르게 하거나, WHERE절 생략
-    return [];
-  }
-
-  const [logs] = await connection.query(
-    `
-    (
-      SELECT UL.*, U.TAGNAME, U.USERNAME, UI.IMG_PATH, UI.IMG_NAME
-      FROM USER_LOG UL
-      JOIN USER U ON UL.ACTOR_ID = U.USERID
-      LEFT JOIN USERIMG UI ON UL.ACTOR_ID = UI.USERID
-      WHERE UL.TARGET_TYPE = 'USER'
-        AND UL.TARGET_ID = ?
-    )
-    UNION
-    (
-      SELECT UL.*, U.TAGNAME, U.USERNAME, DI.IMG_PATH, DI.IMG_NAME
-      FROM USER_LOG UL
-      JOIN USER U ON UL.ACTOR_ID = U.USERID
-      LEFT JOIN DUSERIMG DI ON UL.ACTOR_ID = DI.DUSERID
-      WHERE UL.TARGET_TYPE = 'DUSER'
-        AND UL.TARGET_ID IN (${followedIds.map(() => '?').join(',')})
-    )
-    ORDER BY CREATED_AT DESC
-    LIMIT 10 OFFSET ?
-  `,
-    [userId, ...followedIds, offset]
-  );
-
-  return logs;
-}
-
-async function getMentionedFeedsByDeceased(connection, duserId, page = 1, pageSize = 10) {
-  const offset = (page - 1) * pageSize;
+  const placeholders = all_duser_ids.map(() => '?').join(',');
 
   const [logs] = await connection.query(`
-    SELECT UL.*, U.TAGNAME, U.USERNAME, UI.IMG_PATH, UI.IMG_NAME
-    FROM USER_LOG UL
-    JOIN USER U ON UL.ACTOR_ID = U.USERID
-    LEFT JOIN USERIMG UI ON UL.ACTOR_ID = UI.USERID
-    WHERE UL.TARGET_TYPE = 'DUSER'
-      AND UL.TARGET_ID = ?
-      AND UL.TYPE IN ('MENTION', 'FOLLOW', 'REMEMBER')
-    ORDER BY UL.CREATED_AT DESC
+    SELECT * FROM (
+      SELECT ul.*, u.tagname, u.username, ui.img_path, ui.img_name
+      FROM user_log ul
+      JOIN user u ON ul.actor_id = u.userid
+      LEFT JOIN userimg ui ON ul.actor_id = ui.userid
+      WHERE ul.target_type = 'user' AND ul.target_id = ?
+
+      UNION
+
+      SELECT ul.*, u.tagname, u.username, di.img_path, di.img_name
+      FROM user_log ul
+      JOIN user u ON ul.actor_id = u.userid
+      LEFT JOIN duserimg di ON ul.actor_id = di.duserid
+      WHERE ul.target_type = 'duser' AND ul.target_id IN (${placeholders})
+    ) AS logs
+    ORDER BY created_at DESC
     LIMIT ? OFFSET ?
-  `, [duserId, pageSize, offset]);
+  `, [user_id, ...all_duser_ids, page_size, offset]);
 
   return logs;
 }
 
-async function getMentionedFeedsWithContext(connection, duserId, page = 1, pageSize = 10) {
-  const offset = (page - 1) * pageSize;
+async function get_mentioned_feeds_by_deceased(connection, duser_id, page = 1, page_size = 10) {
+  const offset = (page - 1) * page_size;
 
-  // 먼저 고인이 언급된 피드번호 목록을 조회
+  const [logs] = await connection.query(`
+    SELECT ul.*, u.tagname, u.username, ui.img_path, ui.img_name
+    FROM user_log ul
+    JOIN user u ON ul.actor_id = u.userid
+    LEFT JOIN userimg ui ON ul.actor_id = ui.userid
+    WHERE ul.target_type = 'duser'
+      AND ul.target_id = ?
+      AND ul.type IN ('mention', 'follow', 'remember')
+    ORDER BY ul.created_at DESC
+    LIMIT ? OFFSET ?
+  `, [duser_id, page_size, offset]);
+
+  return logs;
+}
+
+async function get_mentioned_feeds_with_context(connection, duser_id, page = 1, page_size = 10) {
+  const offset = (page - 1) * page_size;
+
   const [mentioned] = await connection.execute(`
-    SELECT DISTINCT SOURCE_ID
-    FROM USER_LOG
-    WHERE TYPE = 'MENTION'
-      AND TARGET_TYPE = 'DUSER'
-      AND SOURCE_TYPE = 'FEED'
-      AND TARGET_ID = ?
-  `, [duserId]);
+    SELECT DISTINCT source_id
+    FROM user_log
+    WHERE type = 'mention'
+      AND target_type = 'duser'
+      AND source_type = 'feed'
+      AND target_id = ?
+  `, [duser_id]);
 
-  const feedNos = mentioned.map(row => row.SOURCE_ID);
-  if (feedNos.length === 0) return []; // 해당 피드가 없으면 바로 반환
+  const feed_nos = mentioned.map(row => row.source_id);
+  if (feed_nos.length === 0) return [];
 
-  const placeholders = feedNos.map(() => '?').join(',');
+  const placeholders = feed_nos.map(() => '?').join(',');
 
   const [logs] = await connection.query(`
-    SELECT UL.*, U.TAGNAME, U.USERNAME, UI.IMG_PATH, UI.IMG_NAME
-    FROM USER_LOG UL
-    JOIN USER U ON UL.ACTOR_ID = U.USERID
-    LEFT JOIN USERIMG UI ON UL.ACTOR_ID = UI.USERID
-    WHERE UL.SOURCE_TYPE = 'FEED'
-      AND UL.SOURCE_ID IN (${placeholders})
-      AND UL.TYPE IN ('LIKE', 'COMMENT')
-    ORDER BY UL.CREATED_AT DESC
+    SELECT ul.*, u.tagname, u.username, ui.img_path, ui.img_name
+    FROM user_log ul
+    JOIN user u ON ul.actor_id = u.userid
+    LEFT JOIN userimg ui ON ul.actor_id = ui.userid
+    WHERE ul.source_type = 'feed'
+      AND ul.source_id IN (${placeholders})
+      AND ul.type IN ('like', 'comment')
+    ORDER BY ul.created_at DESC
     LIMIT ? OFFSET ?
-  `, [...feedNos, pageSize, offset]);
+  `, [...feed_nos, page_size, offset]);
 
   return logs;
 }
 
 module.exports = {
-  getRelevantUserLogs,
-  getMentionedFeedsByDeceased,
-  getMentionedFeedsWithContext
+  get_relevant_user_logs,
+  get_mentioned_feeds_by_deceased,
+  get_mentioned_feeds_with_context
 };

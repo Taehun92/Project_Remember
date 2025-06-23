@@ -61,20 +61,20 @@ router.post(
     const filepath = '/uploads/profile/';
 
     try {
-      const [exists] = await db.query('SELECT * FROM USERIMG WHERE USERID = ?', [id]);
-      console.log(`[Upload] USERIMG exists count: ${exists.length}`);
+      const [exists] = await db.query('select * from userimg where userid = ?', [id]);
+      console.log(`[Upload] userimg exists count: ${exists.length}`);
       if (exists.length) {
         await db.query(
-          'UPDATE USERIMG SET IMG_NAME = ?, IMG_PATH = ?, UPDATED_AT = NOW() WHERE USERID = ?',
+          'update userimg set img_name = ?, img_path = ?, updated_at = now() where userid = ?',
           [filename, filepath, id]
         );
-        console.log('[Upload] USERIMG updated for userId:', id);
+        console.log('[Upload] userimg updated for userId:', id);
       } else {
         await db.query(
-          'INSERT INTO USERIMG (USERID, IMG_NAME, IMG_PATH, CREATED_AT, UPDATED_AT) VALUES (?, ?, ?, NOW(), NOW())',
+          'insert into userimg (userid, img_name, img_path, created_at, updated_at) values (?, ?, ?, now(), now())',
           [id, filename, filepath]
         );
-        console.log('[Upload] USERIMG inserted for userId:', id);
+        console.log('[Upload] userimg inserted for userId:', id);
       }
       return res.json({ success: true, filename, filepath });
     } catch (err) {
@@ -99,35 +99,34 @@ router.post('/deceased', setFolder('deceased'), upload.single('image'), async (r
   const filepath = '/uploads/deceased/';
 
   try {
-    const [exists] = await db.query('SELECT * FROM DUSERIMG WHERE DUSERID = ?', [id]);
-    console.log(`[Upload] DUSERIMG exists count: ${exists.length}`);
+    const [exists] = await db.query('select * from duserimg where duserid = ?', [id]);
+    console.log(`[Upload] duserimg exists count: ${exists.length}`);
     if (exists.length) {
       await db.query(
-        'UPDATE DUSERIMG SET IMG_NAME = ?, IMG_PATH = ? WHERE DUSERID = ?',
+        'update duserimg set img_name = ?, img_path = ? where duserid = ?',
         [filename, filepath, id]
       );
-      console.log('[Upload] DUSERIMG updated for duserId:', id);
+      console.log('[Upload] duserimg updated for duserId:', id);
     } else {
       await db.query(
-        'INSERT INTO DUSERIMG (DUSERID, IMG_NAME, IMG_PATH) VALUES (?, ?, ?)',
+        'insert into duserimg (duserid, img_name, img_path) values (?, ?, ?)',
         [id, filename, filepath]
       );
-      console.log('[Upload] DUSERIMG inserted for duserId:', id);
+      console.log('[Upload] duserimg inserted for duserId:', id);
     }
     return res.json({ success: true, filename, filepath });
   } catch (err) {
     console.error('[Upload] DB error:', err);
     return res.status(500).json({ success: false, message: '서버 오류' });
   }
-}
-);
+});
 
 // [POST] /upload/feed
 router.post('/feed', setFolder('feed'), upload.array('images'), async (req, res) => {
   const { feedId } = req.body;
   const files = req.files;
   console.log("이미지 등록용 FEED ID", feedId);
-  
+
   if (!feedId || !files || files.length === 0) {
     return res.status(400).json({ success: false, message: '필수 데이터 누락' });
   }
@@ -135,7 +134,7 @@ router.post('/feed', setFolder('feed'), upload.array('images'), async (req, res)
   try {
     for (const file of files) {
       await db.execute(
-        `INSERT INTO FEEDSIMG (FEEDNO, IMG_PATH, IMG_NAME, CREATED_AT) VALUES (?, ?, ?, NOW())`,
+        `insert into feedsimg (feedno, img_path, img_name, created_at) values (?, ?, ?, now())`,
         [feedId, '/uploads/feed/', file.filename]
       );
     }
