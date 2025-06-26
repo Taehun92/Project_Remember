@@ -57,8 +57,7 @@
 
 ### 🔐 로그인 / 회원가입
 
-<img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/login.PNG" width="400" />
-<img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/join.PNG" width="400" />
+<img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/login.PNG" width="400" /> <img src="https://github.com/Taehun92/Project_Remember/blob/master/readme_img/join.PNG" width="400" />
 
 * 심플한 UI로 접근성을 높이고, 금색 포인트로 고급스러움 표현
 * 회원가입은 모달 단계별 구성 → 마이페이지에서 추후 수정 가능
